@@ -10,22 +10,22 @@ const datos = {
 
 const jugadoresPorEquipo = {
   'Real Madrid': [
-    { nombre: 'Mbappé', dorsal: 10 },
-    { nombre: 'Vinicius Jr.', dorsal: 7 },
-    { nombre: 'Bellingham', dorsal: 5 },
-    { nombre: 'Rodrygo', dorsal: 11 },
+    { nombre: 'Mbappé', dorsal: 10, apiId: 278 },
+    { nombre: 'Vinicius Jr.', dorsal: 7, apiId: 25759 },
+    { nombre: 'Bellingham', dorsal: 5, apiId: 1254 },
+    { nombre: 'Rodrygo', dorsal: 11, apiId: 243048 },
   ],
   'FC Barcelona': [
-    { nombre: 'Lamine Yamal', dorsal: 10 },
-    { nombre: 'Lewandowski', dorsal: 9 },
-    { nombre: 'Pedri', dorsal: 8 },
-    { nombre: 'Raphinha', dorsal: 11 },
+    { nombre: 'Lamine Yamal', dorsal: 10, apiId: 386828 },
+    { nombre: 'Lewandowski', dorsal: 9, apiId: 521 },
+    { nombre: 'Pedri', dorsal: 8, apiId: 306669 },
+    { nombre: 'Raphinha', dorsal: 11, apiId: 284397 },
   ],
   'Atlético de Madrid': [
-    { nombre: 'J. Álvarez', dorsal: 19 },
-    { nombre: 'Griezmann', dorsal: 7 },
-    { nombre: 'Sørloth', dorsal: 9 },
-    { nombre: 'Koke', dorsal: 6 },
+    { nombre: 'J. Álvarez', dorsal: 19, apiId: 48063 },
+    { nombre: 'Griezmann', dorsal: 7, apiId: 56 },
+    { nombre: 'Sørloth', dorsal: 9, apiId: 37145 },
+    { nombre: 'Koke', dorsal: 6, apiId: 710 },
   ],
 }
 
