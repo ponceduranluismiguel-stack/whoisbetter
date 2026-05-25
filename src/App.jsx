@@ -1,8 +1,9 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import domtoimage from 'dom-to-image-more'
 import './App.css'
 import Picker from './Picker'
 import ShareCard from './ShareCard'
+import ComparadorCompleto from './ComparadorCompleto'
 
 const kitStyles = {
   'Real Madrid': { background: 'linear-gradient(145deg, #fff, #f0f0f0)', nameColor: '#1a1a1a', numColor: '#1a1a1a', stroke: 'none' },
@@ -53,7 +54,7 @@ function App() {
   const [slotActivo, setSlotActivo] = useState(null)
   const [jugadores, setJugadores] = useState([null, null])
   const [compartiendo, setCompartiendo] = useState(false)
-  const cardRef = useRef(null)
+  const [comparadorOpen, setComparadorOpen] = useState(false)
 
   const abrirPicker = (indice) => {
     setSlotActivo(indice)
@@ -74,19 +75,14 @@ function App() {
   }
 
   const capturar = async () => {
-    if (!cardRef.current) {
-      console.log('ERROR: cardRef es null')
-      return null
-    }
-    console.log('Iniciando captura...')
+    const elemento = document.querySelector('.share-card')
+    if (!elemento) return null
     await document.fonts.ready
-    console.log('Fuentes listas, capturando...')
     try {
-      const blob = await domtoimage.toBlob(cardRef.current, {
+      const blob = await domtoimage.toBlob(elemento, {
         scale: 3,
         bgcolor: '#04102e',
       })
-      console.log('Blob generado:', blob?.size)
       return blob
     } catch(e) {
       console.error('Error en captura:', e)
@@ -204,20 +200,36 @@ function App() {
         jugadores={jugadores}
         competicion={competicion}
         temporada={temporada}
-        cardRef={cardRef}
       />
 
       {tieneJugadores && (
-        <div className="actions">
-          <button className="action-btn action-share" onClick={compartir} disabled={compartiendo}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
-            {compartiendo ? 'Generando...' : 'Compartir'}
+        <>
+          <button
+            className="btn-comparador-completo"
+            onClick={() => setComparadorOpen(true)}
+          >
+            Comparación completa →
           </button>
-          <button className="action-btn action-download" onClick={descargar} disabled={compartiendo}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20H19V18H5M19 9H15V3H9V9H5L12 16L19 9Z"/></svg>
-            Descargar
-          </button>
-        </div>
+
+          <div className="actions">
+            <button className="action-btn action-share" onClick={compartir} disabled={compartiendo}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+              {compartiendo ? 'Generando...' : 'Compartir'}
+            </button>
+            <button className="action-btn action-download" onClick={descargar} disabled={compartiendo}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20H19V18H5M19 9H15V3H9V9H5L12 16L19 9Z"/></svg>
+              Descargar
+            </button>
+          </div>
+        </>
+      )}
+
+      {comparadorOpen && (
+        <ComparadorCompleto
+          jugadores={jugadores}
+          competicion={competicion}
+          onClose={() => setComparadorOpen(false)}
+        />
       )}
 
       {pickerOpen && (
