@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import html2canvas from 'html2canvas'
+import domtoimage from 'dom-to-image-more'
 import './App.css'
 import Picker from './Picker'
 import ShareCard from './ShareCard'
@@ -73,50 +73,49 @@ function App() {
     setJugadores(nuevos)
   }
 
-  const compartir = async () => {
-    if (!cardRef.current) return
+  const capturar = async () => {
+    if (!cardRef.current) return null
+    await document.fonts.ready
+    const blob = await domtoimage.toBlob(cardRef.current, {
+      scale: 3,
+      bgcolor: '#04102e',
+    })
+    return blob
+  }
+
+  const descargar = async () => {
     setCompartiendo(true)
     try {
-      const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: null,
-        scale: 2,
-        useCORS: true,
-        logging: false,
-      })
-      canvas.toBlob(async (blob) => {
-        const file = new File([blob], 'whoisbetter.png', { type: 'image/png' })
-        if (navigator.share && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: 'Whoisbetter?' })
-        } else {
-          const url = URL.createObjectURL(blob)
-          const a = document.createElement('a')
-          a.href = url
-          a.download = 'whoisbetter.png'
-          a.click()
-          URL.revokeObjectURL(url)
-        }
-      })
+      const blob = await capturar()
+      if (!blob) return
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'whoisbetter.png'
+      a.click()
+      URL.revokeObjectURL(url)
     } catch (e) {
       console.error(e)
     }
     setCompartiendo(false)
   }
 
-  const descargar = async () => {
-    if (!cardRef.current) return
+  const compartir = async () => {
     setCompartiendo(true)
     try {
-      const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: null,
-        scale: 2,
-        useCORS: true,
-        logging: false,
-      })
-      const url = canvas.toDataURL('image/png')
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'whoisbetter.png'
-      a.click()
+      const blob = await capturar()
+      if (!blob) return
+      const file = new File([blob], 'whoisbetter.png', { type: 'image/png' })
+      if (navigator.share && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'Whoisbetter?' })
+      } else {
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'whoisbetter.png'
+        a.click()
+        URL.revokeObjectURL(url)
+      }
     } catch (e) {
       console.error(e)
     }
@@ -186,13 +185,12 @@ function App() {
         ))}
       </div>
 
-      <div ref={cardRef}>
-        <ShareCard
-          jugadores={jugadores}
-          competicion={competicion}
-          temporada={temporada}
-        />
-      </div>
+      <ShareCard
+        jugadores={jugadores}
+        competicion={competicion}
+        temporada={temporada}
+        cardRef={cardRef}
+      />
 
       {tieneJugadores && (
         <div className="actions">
