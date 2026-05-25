@@ -74,13 +74,24 @@ function App() {
   }
 
   const capturar = async () => {
-    if (!cardRef.current) return null
+    if (!cardRef.current) {
+      console.log('ERROR: cardRef es null')
+      return null
+    }
+    console.log('Iniciando captura...')
     await document.fonts.ready
-    const blob = await domtoimage.toBlob(cardRef.current, {
-      scale: 3,
-      bgcolor: '#04102e',
-    })
-    return blob
+    console.log('Fuentes listas, capturando...')
+    try {
+      const blob = await domtoimage.toBlob(cardRef.current, {
+        scale: 3,
+        bgcolor: '#04102e',
+      })
+      console.log('Blob generado:', blob?.size)
+      return blob
+    } catch(e) {
+      console.error('Error en captura:', e)
+      return null
+    }
   }
 
   const descargar = async () => {
@@ -92,8 +103,10 @@ function App() {
       const a = document.createElement('a')
       a.href = url
       a.download = 'whoisbetter.png'
+      document.body.appendChild(a)
       a.click()
-      URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
     } catch (e) {
       console.error(e)
     }
@@ -113,8 +126,10 @@ function App() {
         const a = document.createElement('a')
         a.href = url
         a.download = 'whoisbetter.png'
+        document.body.appendChild(a)
         a.click()
-        URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+        setTimeout(() => URL.revokeObjectURL(url), 1000)
       }
     } catch (e) {
       console.error(e)
