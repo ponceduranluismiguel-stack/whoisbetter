@@ -35,34 +35,126 @@ const kitDefault = {
   numColor: '#ffd400'
 }
 
-async function fetchStats(apiId, liga) {
-  const leagueIds = {
-    'LaLiga': 140,
-    'Premier League': 39,
-    'Serie A': 135,
-    'Bundesliga': 78,
-    'Ligue 1': 61,
-    'Toda la temporada': 140,
+export const leagueIds = {
+  'LaLiga': 140,
+  'Premier League': 39,
+  'Serie A': 135,
+  'Bundesliga': 78,
+  'Ligue 1': 61,
+  'Champions': 2,
+  'Copa del Rey': 143,
+  'Europa': 3,
+  'Selección': 10,
+}
+
+const todasLasLigas = [140, 39, 135, 78, 61, 2, 143, 3, 10]
+
+async function fetchUnaLiga(apiId, leagueId) {
+  const res = await fetch(`${API_URL}/players?id=${apiId}&season=${SEASON}&league=${leagueId}`)
+  const data = await res.json()
+  return data.response?.[0]?.statistics?.[0] || null
+}
+
+function sumarStats(estadisticas) {
+  const validas = estadisticas.filter(Boolean)
+  if (validas.length === 0) return null
+
+  const totalMinutos = validas.reduce((s, st) => s + (st.games?.minutes || 0), 0)
+  const totalGoles = validas.reduce((s, st) => s + (st.goals?.total || 0), 0)
+  const totalAsistencias = validas.reduce((s, st) => s + (st.goals?.assists || 0), 0)
+  const totalPartidos = validas.reduce((s, st) => s + (st.games?.appearences || 0), 0)
+  const totalTitularidades = validas.reduce((s, st) => s + (st.games?.lineups || 0), 0)
+  const totalDisparosTotales = validas.reduce((s, st) => s + (st.shots?.total || 0), 0)
+  const totalDisparosPuerta = validas.reduce((s, st) => s + (st.shots?.on || 0), 0)
+  const totalPasesClave = validas.reduce((s, st) => s + (st.passes?.key || 0), 0)
+  const totalPasesTotales = validas.reduce((s, st) => s + (st.passes?.total || 0), 0)
+  const totalDuelosTotales = validas.reduce((s, st) => s + (st.duels?.total || 0), 0)
+  const totalDuelosGanados = validas.reduce((s, st) => s + (st.duels?.won || 0), 0)
+  const totalRegatesInt = validas.reduce((s, st) => s + (st.dribbles?.attempts || 0), 0)
+  const totalRegatesOk = validas.reduce((s, st) => s + (st.dribbles?.success || 0), 0)
+  const totalFaltasRecibidas = validas.reduce((s, st) => s + (st.fouls?.drawn || 0), 0)
+  const totalTackles = validas.reduce((s, st) => s + (st.tackles?.total || 0), 0)
+  const totalIntercepciones = validas.reduce((s, st) => s + (st.tackles?.interceptions || 0), 0)
+  const totalFaltasCometidas = validas.reduce((s, st) => s + (st.fouls?.committed || 0), 0)
+  const totalAmarillas = validas.reduce((s, st) => s + (st.cards?.yellow || 0), 0)
+  const totalPenaltis = validas.reduce((s, st) => s + (st.penalty?.scored || 0), 0)
+  const avgRating = validas.reduce((s, st) => s + (parseFloat(st.games?.rating) || 0), 0) / validas.length
+  const avgPrecisionPase = validas.reduce((s, st) => s + (st.passes?.accuracy || 0), 0) / validas.length
+
+  return {
+    goles: totalGoles,
+    asistencias: totalAsistencias,
+    gA: totalGoles + totalAsistencias,
+    partidos: totalPartidos,
+    titularidades: totalTitularidades,
+    minutos: totalMinutos,
+    rating: parseFloat(avgRating.toFixed(2)),
+    minGol: totalGoles > 0 ? Math.round(totalMinutos / totalGoles) : 999,
+    minAsist: totalAsistencias > 0 ? Math.round(totalMinutos / totalAsistencias) : 999,
+    penaltis: totalPenaltis,
+    disparosTotales: totalDisparosTotales,
+    disparosPuerta: totalDisparosPuerta,
+    precisionDisparo: totalDisparosTotales > 0 ? Math.round((totalDisparosPuerta / totalDisparosTotales) * 100) : 0,
+    pasesClave: totalPasesClave,
+    pasesTotales: totalPasesTotales,
+    precisionPase: parseFloat(avgPrecisionPase.toFixed(1)),
+    duelosTotales: totalDuelosTotales,
+    duelosGanados: totalDuelosGanados,
+    pctDuelos: totalDuelosTotales > 0 ? Math.round((totalDuelosGanados / totalDuelosTotales) * 100) : 0,
+    regatesInt: totalRegatesInt,
+    regatesOk: totalRegatesOk,
+    faltasRecibidas: totalFaltasRecibidas,
+    tackles: totalTackles,
+    intercepciones: totalIntercepciones,
+    faltasCometidas: totalFaltasCometidas,
+    amarillas: totalAmarillas,
+  }
+}
+
+export async function fetchStatsCompleto(apiId, liga) {
+  if (liga === 'Toda la temporada') {
+    const todas = await Promise.all(todasLasLigas.map(id => fetchUnaLiga(apiId, id)))
+    return sumarStats(todas)
   }
   const leagueId = leagueIds[liga] || 140
   const res = await fetch(`${API_URL}/players?id=${apiId}&season=${SEASON}&league=${leagueId}`)
   const data = await res.json()
-  const stats = data.response?.[0]?.statistics?.[0]
-  if (!stats) return null
-  const g = stats.goals
-  const games = stats.games
+  const st = data.response?.[0]?.statistics?.[0]
+  if (!st) return null
+  const g = st.goals
+  const games = st.games
   const minutos = games.minutes || 0
   const goles = g.total || 0
   const asistencias = g.assists || 0
+  const disparosTotales = st.shots?.total || 0
+  const disparosPuerta = st.shots?.on || 0
   return {
     goles,
     asistencias,
     gA: goles + asistencias,
     partidos: games.appearences || 0,
+    titularidades: games.lineups || 0,
     minutos,
     rating: parseFloat(games.rating) || 0,
     minGol: goles > 0 ? Math.round(minutos / goles) : 999,
     minAsist: asistencias > 0 ? Math.round(minutos / asistencias) : 999,
+    penaltis: st.penalty?.scored || 0,
+    disparosTotales,
+    disparosPuerta,
+    precisionDisparo: disparosTotales > 0 ? Math.round((disparosPuerta / disparosTotales) * 100) : 0,
+    pasesClave: st.passes?.key || 0,
+    pasesTotales: st.passes?.total || 0,
+    precisionPase: st.passes?.accuracy || 0,
+    duelosTotales: st.duels?.total || 0,
+    duelosGanados: st.duels?.won || 0,
+    pctDuelos: st.duels?.total > 0 ? Math.round((st.duels.won / st.duels.total) * 100) : 0,
+    regatesInt: st.dribbles?.attempts || 0,
+    regatesOk: st.dribbles?.success || 0,
+    faltasRecibidas: st.fouls?.drawn || 0,
+    tackles: st.tackles?.total || 0,
+    intercepciones: st.tackles?.interceptions || 0,
+    faltasCometidas: st.fouls?.committed || 0,
+    amarillas: st.cards?.yellow || 0,
   }
 }
 
@@ -94,11 +186,11 @@ function ShareCard({ jugadores, competicion, temporada }) {
   useEffect(() => {
     if (!jugadores[0] || !jugadores[1]) return
     if (!jugadores[0].apiId || !jugadores[1].apiId) return
-
     setCargando(true)
+    setStats([null, null])
     Promise.all([
-      fetchStats(jugadores[0].apiId, competicion),
-      fetchStats(jugadores[1].apiId, competicion),
+      fetchStatsCompleto(jugadores[0].apiId, competicion),
+      fetchStatsCompleto(jugadores[1].apiId, competicion),
     ]).then(([s1, s2]) => {
       setStats([s1, s2])
       setCargando(false)

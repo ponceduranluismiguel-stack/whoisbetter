@@ -3,6 +3,19 @@ import { useState, useEffect } from 'react'
 const API_URL = 'https://whoisbetter-api.ponceduranluismiguel.workers.dev'
 const SEASON = '2025'
 
+const leagueIds = {
+  'LaLiga': 140,
+  'Premier League': 39,
+  'Serie A': 135,
+  'Bundesliga': 78,
+  'Ligue 1': 61,
+  'Champions': 2,
+  'Copa del Rey': 143,
+  'Europa': 3,
+  'Selección': 10,
+  'Toda la temporada': 140,
+}
+
 const CROWN_SVG = (
   <svg viewBox="0 0 24 24" fill="currentColor" style={{width:'12px',height:'12px'}}>
     <path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5M19 19V20C19 20.5 18.5 21 18 21H6C5.45 21 5 20.55 5 20V19H19Z"/>
@@ -10,10 +23,6 @@ const CROWN_SVG = (
 )
 
 async function cargarStats(apiId, liga) {
-  const leagueIds = {
-    'LaLiga': 140, 'Premier League': 39, 'Serie A': 135,
-    'Bundesliga': 78, 'Ligue 1': 61, 'Toda la temporada': 140,
-  }
   const leagueId = leagueIds[liga] || 140
   const res = await fetch(`${API_URL}/players?id=${apiId}&season=${SEASON}&league=${leagueId}`)
   const data = await res.json()
@@ -88,6 +97,8 @@ function ComparadorCompleto({ jugadores, competicion, onClose }) {
   useEffect(() => {
     if (!j1?.apiId || !j2?.apiId) return
     setCargando(true)
+    setS1(null)
+    setS2(null)
     Promise.all([
       cargarStats(j1.apiId, competicion),
       cargarStats(j2.apiId, competicion),
@@ -96,7 +107,7 @@ function ComparadorCompleto({ jugadores, competicion, onClose }) {
       setS2(r2)
       setCargando(false)
     })
-  }, [])
+  }, [competicion])
 
   return (
     <div className="cc-overlay">
