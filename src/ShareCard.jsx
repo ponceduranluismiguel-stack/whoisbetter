@@ -159,6 +159,64 @@ function determinarGanador(s1, s2) {
   return { puntos1, puntos2, total: todas.length }
 }
 
+function KitConFoto({ jugador, kit, apellido }) {
+  const fotoUrl = jugador.apiId
+    ? `${API_URL}/img/football/players/${jugador.apiId}.png`
+    : null
+
+  return (
+    <div className="sc-kit" style={{ background: kit.background, position: 'relative', overflow: 'visible' }}>
+      {fotoUrl ? (
+        <img
+          src={fotoUrl}
+          alt={apellido}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'top center',
+            borderRadius: '11px',
+          }}
+          onError={e => {
+            e.target.style.display = 'none'
+            e.target.nextSibling && (e.target.nextSibling.style.display = 'flex')
+          }}
+        />
+      ) : null}
+      <div style={{
+        display: fotoUrl ? 'none' : 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        height: '100%',
+      }}>
+        <div className="sc-kit-name" style={{ color: kit.nameColor }}>{apellido}</div>
+        <div className="sc-kit-num" style={{ color: kit.numColor }}>{jugador.dorsal}</div>
+      </div>
+      <div style={{
+        position: 'absolute',
+        bottom: '-6px',
+        right: '-6px',
+        background: '#ffd400',
+        color: '#0a1740',
+        fontFamily: 'Anton, sans-serif',
+        fontSize: '0.7rem',
+        width: '22px',
+        height: '22px',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
+        zIndex: 2,
+      }}>
+        {jugador.dorsal}
+      </div>
+    </div>
+  )
+}
+
 function ShareCard({ jugadores, competicion, temporada }) {
   const [stats, setStats] = useState([null, null])
   const [cargando, setCargando] = useState(false)
@@ -234,10 +292,7 @@ function ShareCard({ jugadores, competicion, temporada }) {
             {puntos1 >= puntos2 && (
               <div className="sc-crown">{CROWN_SVG}<span>GANA</span></div>
             )}
-            <div className="sc-kit" style={{ background: kit1.background }}>
-              <div className="sc-kit-name" style={{ color: kit1.nameColor }}>{apellido1}</div>
-              <div className="sc-kit-num" style={{ color: kit1.numColor }}>{j1.dorsal}</div>
-            </div>
+            <KitConFoto jugador={j1} kit={kit1} apellido={apellido1} />
             <div className="sc-name">{nombre1}</div>
             <div className="sc-club">{j1.equipo}</div>
           </div>
@@ -253,10 +308,7 @@ function ShareCard({ jugadores, competicion, temporada }) {
             {puntos2 > puntos1 && (
               <div className="sc-crown">{CROWN_SVG}<span>GANA</span></div>
             )}
-            <div className="sc-kit" style={{ background: kit2.background }}>
-              <div className="sc-kit-name" style={{ color: kit2.nameColor }}>{apellido2}</div>
-              <div className="sc-kit-num" style={{ color: kit2.numColor }}>{j2.dorsal}</div>
-            </div>
+            <KitConFoto jugador={j2} kit={kit2} apellido={apellido2} />
             <div className="sc-name">{nombre2}</div>
             <div className="sc-club">{j2.equipo}</div>
           </div>

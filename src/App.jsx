@@ -5,7 +5,6 @@ import Picker from './Picker'
 import ShareCard from './ShareCard'
 import ComparadorCompleto from './ComparadorCompleto'
 
-// Diccionario de nombres conocidos por apiId
 const nombresConocidos = {
   278: 'Mbappé',
   386828: 'Lamine Yamal',
@@ -23,11 +22,9 @@ const nombresConocidos = {
   184698: 'Iñaki Williams',
   2295: 'Oyarzabal',
   2285: 'Merino',
-  2310: 'Le Normand',
   19229: 'Oblak',
   750: 'De Bruyne',
   626: 'Salah',
-  521: 'Lewandowski',
   47: 'Benzema',
 }
 
@@ -74,11 +71,47 @@ const kitDefault = {
 function KitAvatar({ jugador }) {
   const kit = kitStyles[jugador.equipo] || kitDefault
   return (
-    <div className="slot-kit" style={{ background: kit.background }}>
-      <div className="slot-kit-name" style={{ color: kit.nameColor, WebkitTextStroke: kit.stroke }}>
-        {apellidoParaCamiseta(jugador)}
-      </div>
-      <div className="slot-kit-num" style={{ color: kit.numColor, WebkitTextStroke: kit.stroke }}>
+    <div className="slot-kit" style={{ background: kit.background, position: 'relative', overflow: 'visible' }}>
+      {jugador.foto ? (
+        <img
+          src={jugador.foto}
+          alt={jugador.nombreMostrado || jugador.nombre}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'top center',
+            borderRadius: '50%',
+          }}
+          onError={e => { e.target.style.display = 'none' }}
+        />
+      ) : (
+        <>
+          <div className="slot-kit-name" style={{ color: kit.nameColor, WebkitTextStroke: kit.stroke }}>
+            {apellidoParaCamiseta(jugador)}
+          </div>
+          <div className="slot-kit-num" style={{ color: kit.numColor, WebkitTextStroke: kit.stroke }}>
+            {jugador.dorsal}
+          </div>
+        </>
+      )}
+      <div style={{
+        position: 'absolute',
+        bottom: '-4px',
+        right: '-4px',
+        background: '#ffd400',
+        color: '#0a1740',
+        fontFamily: 'Anton, sans-serif',
+        fontSize: '0.65rem',
+        width: '20px',
+        height: '20px',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
+        zIndex: 2,
+      }}>
         {jugador.dorsal}
       </div>
     </div>

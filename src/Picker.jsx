@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 const API_URL = 'https://whoisbetter-api.ponceduranluismiguel.workers.dev'
 const SEASON = '2025'
+const IMG_URL = 'https://whoisbetter-api.ponceduranluismiguel.workers.dev/img'
 
 const ligasConfig = [
   { nombre: 'LaLiga', bandera: '🇪🇸', id: 140 },
@@ -10,6 +11,11 @@ const ligasConfig = [
   { nombre: 'Bundesliga', bandera: '🇩🇪', id: 78 },
   { nombre: 'Ligue 1', bandera: '🇫🇷', id: 61 },
 ]
+
+function fotoProxy(url) {
+  if (!url) return null
+  return url.replace('https://media.api-sports.io/', `${IMG_URL}/`)
+}
 
 function Picker({ onSelect, onClose }) {
   const [paso, setPaso] = useState('liga')
@@ -31,7 +37,7 @@ function Picker({ onSelect, onClose }) {
       const lista = (data.response || []).map(t => ({
         id: t.team.id,
         nombre: t.team.name,
-        logo: t.team.logo,
+        logo: fotoProxy(t.team.logo),
         ligaId: liga.id,
       }))
       setEquipos(lista)
@@ -72,6 +78,7 @@ function Picker({ onSelect, onClose }) {
           nombre: j.player.name,
           dorsal: j.statistics?.[0]?.games?.number || '?',
           apiId: j.player.id,
+          foto: fotoProxy(j.player.photo),
         }))
 
       const sinMinutos = todos
@@ -81,6 +88,7 @@ function Picker({ onSelect, onClose }) {
           nombre: j.player.name,
           dorsal: j.statistics?.[0]?.games?.number || '?',
           apiId: j.player.id,
+          foto: fotoProxy(j.player.photo),
         }))
 
       setPrimerEquipo(conMinutos)
@@ -159,9 +167,19 @@ function Picker({ onSelect, onClose }) {
             <>
               {primerEquipo.map((j, i) => (
                 <div key={`p-${j.apiId}-${i}`} className="league-item" onClick={() => elegirJugador(j)}>
-                  <div className="player-dorsal">{j.dorsal}</div>
+                  {j.foto ? (
+                    <img
+                      src={j.foto}
+                      alt={j.nombre}
+                      style={{width:'36px',height:'36px',borderRadius:'50%',objectFit:'cover',background:'#1a2750'}}
+                      onError={e => e.target.style.display='none'}
+                    />
+                  ) : (
+                    <div className="player-dorsal">{j.dorsal}</div>
+                  )}
                   <div className="league-info">
                     <div className="league-name">{j.nombre}</div>
+                    <div className="league-meta">Dorsal {j.dorsal}</div>
                   </div>
                   <span className="league-arrow">›</span>
                 </div>
