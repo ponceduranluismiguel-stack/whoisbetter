@@ -58,7 +58,6 @@ async function fetchUnaLiga(apiId, leagueId) {
 function sumarStats(estadisticas) {
   const validas = estadisticas.filter(Boolean)
   if (validas.length === 0) return null
-
   const totalMinutos = validas.reduce((s, st) => s + (st.games?.minutes || 0), 0)
   const totalGoles = validas.reduce((s, st) => s + (st.goals?.total || 0), 0)
   const totalAsistencias = validas.reduce((s, st) => s + (st.goals?.assists || 0), 0)
@@ -80,33 +79,24 @@ function sumarStats(estadisticas) {
   const totalPenaltis = validas.reduce((s, st) => s + (st.penalty?.scored || 0), 0)
   const avgRating = validas.reduce((s, st) => s + (parseFloat(st.games?.rating) || 0), 0) / validas.length
   const avgPrecisionPase = validas.reduce((s, st) => s + (st.passes?.accuracy || 0), 0) / validas.length
-
   return {
-    goles: totalGoles,
-    asistencias: totalAsistencias,
+    goles: totalGoles, asistencias: totalAsistencias,
     gA: totalGoles + totalAsistencias,
-    partidos: totalPartidos,
-    titularidades: totalTitularidades,
+    partidos: totalPartidos, titularidades: totalTitularidades,
     minutos: totalMinutos,
     rating: parseFloat(avgRating.toFixed(2)),
     minGol: totalGoles > 0 ? Math.round(totalMinutos / totalGoles) : 999,
     minAsist: totalAsistencias > 0 ? Math.round(totalMinutos / totalAsistencias) : 999,
     penaltis: totalPenaltis,
-    disparosTotales: totalDisparosTotales,
-    disparosPuerta: totalDisparosPuerta,
+    disparosTotales: totalDisparosTotales, disparosPuerta: totalDisparosPuerta,
     precisionDisparo: totalDisparosTotales > 0 ? Math.round((totalDisparosPuerta / totalDisparosTotales) * 100) : 0,
-    pasesClave: totalPasesClave,
-    pasesTotales: totalPasesTotales,
+    pasesClave: totalPasesClave, pasesTotales: totalPasesTotales,
     precisionPase: parseFloat(avgPrecisionPase.toFixed(1)),
-    duelosTotales: totalDuelosTotales,
-    duelosGanados: totalDuelosGanados,
+    duelosTotales: totalDuelosTotales, duelosGanados: totalDuelosGanados,
     pctDuelos: totalDuelosTotales > 0 ? Math.round((totalDuelosGanados / totalDuelosTotales) * 100) : 0,
-    regatesInt: totalRegatesInt,
-    regatesOk: totalRegatesOk,
-    faltasRecibidas: totalFaltasRecibidas,
-    tackles: totalTackles,
-    intercepciones: totalIntercepciones,
-    faltasCometidas: totalFaltasCometidas,
+    regatesInt: totalRegatesInt, regatesOk: totalRegatesOk,
+    faltasRecibidas: totalFaltasRecibidas, tackles: totalTackles,
+    intercepciones: totalIntercepciones, faltasCometidas: totalFaltasCometidas,
     amarillas: totalAmarillas,
   }
 }
@@ -129,32 +119,22 @@ export async function fetchStatsCompleto(apiId, liga) {
   const disparosTotales = st.shots?.total || 0
   const disparosPuerta = st.shots?.on || 0
   return {
-    goles,
-    asistencias,
-    gA: goles + asistencias,
-    partidos: games.appearences || 0,
-    titularidades: games.lineups || 0,
-    minutos,
-    rating: parseFloat(games.rating) || 0,
+    goles, asistencias, gA: goles + asistencias,
+    partidos: games.appearences || 0, titularidades: games.lineups || 0,
+    minutos, rating: parseFloat(games.rating) || 0,
     minGol: goles > 0 ? Math.round(minutos / goles) : 999,
     minAsist: asistencias > 0 ? Math.round(minutos / asistencias) : 999,
     penaltis: st.penalty?.scored || 0,
-    disparosTotales,
-    disparosPuerta,
+    disparosTotales, disparosPuerta,
     precisionDisparo: disparosTotales > 0 ? Math.round((disparosPuerta / disparosTotales) * 100) : 0,
-    pasesClave: st.passes?.key || 0,
-    pasesTotales: st.passes?.total || 0,
+    pasesClave: st.passes?.key || 0, pasesTotales: st.passes?.total || 0,
     precisionPase: st.passes?.accuracy || 0,
-    duelosTotales: st.duels?.total || 0,
-    duelosGanados: st.duels?.won || 0,
+    duelosTotales: st.duels?.total || 0, duelosGanados: st.duels?.won || 0,
     pctDuelos: st.duels?.total > 0 ? Math.round((st.duels.won / st.duels.total) * 100) : 0,
-    regatesInt: st.dribbles?.attempts || 0,
-    regatesOk: st.dribbles?.success || 0,
-    faltasRecibidas: st.fouls?.drawn || 0,
-    tackles: st.tackles?.total || 0,
+    regatesInt: st.dribbles?.attempts || 0, regatesOk: st.dribbles?.success || 0,
+    faltasRecibidas: st.fouls?.drawn || 0, tackles: st.tackles?.total || 0,
     intercepciones: st.tackles?.interceptions || 0,
-    faltasCometidas: st.fouls?.committed || 0,
-    amarillas: st.cards?.yellow || 0,
+    faltasCometidas: st.fouls?.committed || 0, amarillas: st.cards?.yellow || 0,
   }
 }
 
@@ -204,6 +184,11 @@ function ShareCard({ jugadores, competicion, temporada }) {
   const kit1 = kitStyles[j1.equipo] || kitDefault
   const kit2 = kitStyles[j2.equipo] || kitDefault
 
+  const nombre1 = j1.nombreMostrado || j1.nombre
+  const nombre2 = j2.nombreMostrado || j2.nombre
+  const apellido1 = nombre1.split(' ').pop()
+  const apellido2 = nombre2.split(' ').pop()
+
   if (cargando) {
     return (
       <div className="share-card" style={{alignItems:'center',justifyContent:'center'}}>
@@ -219,7 +204,7 @@ function ShareCard({ jugadores, competicion, temporada }) {
   const s1 = stats[0]
   const s2 = stats[1]
   const { puntos1, puntos2, total } = determinarGanador(s1, s2)
-  const ganador = puntos1 >= puntos2 ? j1 : j2
+  const ganador = puntos1 >= puntos2 ? nombre1 : nombre2
   const puntosGanador = puntos1 >= puntos2 ? puntos1 : puntos2
 
   const filas = [
@@ -250,10 +235,10 @@ function ShareCard({ jugadores, competicion, temporada }) {
               <div className="sc-crown">{CROWN_SVG}<span>GANA</span></div>
             )}
             <div className="sc-kit" style={{ background: kit1.background }}>
-              <div className="sc-kit-name" style={{ color: kit1.nameColor }}>{j1.nombre.split(' ').pop()}</div>
+              <div className="sc-kit-name" style={{ color: kit1.nameColor }}>{apellido1}</div>
               <div className="sc-kit-num" style={{ color: kit1.numColor }}>{j1.dorsal}</div>
             </div>
-            <div className="sc-name">{j1.nombre}</div>
+            <div className="sc-name">{nombre1}</div>
             <div className="sc-club">{j1.equipo}</div>
           </div>
         </div>
@@ -269,10 +254,10 @@ function ShareCard({ jugadores, competicion, temporada }) {
               <div className="sc-crown">{CROWN_SVG}<span>GANA</span></div>
             )}
             <div className="sc-kit" style={{ background: kit2.background }}>
-              <div className="sc-kit-name" style={{ color: kit2.nameColor }}>{j2.nombre.split(' ').pop()}</div>
+              <div className="sc-kit-name" style={{ color: kit2.nameColor }}>{apellido2}</div>
               <div className="sc-kit-num" style={{ color: kit2.numColor }}>{j2.dorsal}</div>
             </div>
-            <div className="sc-name">{j2.nombre}</div>
+            <div className="sc-name">{nombre2}</div>
             <div className="sc-club">{j2.equipo}</div>
           </div>
         </div>
@@ -297,7 +282,7 @@ function ShareCard({ jugadores, competicion, temporada }) {
 
       <div className="sc-verdict">
         {CROWN_SVG}
-        <span className="sc-verdict-name">{ganador.nombre}</span>
+        <span className="sc-verdict-name">{ganador}</span>
         <span className="sc-verdict-score">{puntosGanador} / {total}</span>
       </div>
     </div>

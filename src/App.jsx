@@ -5,6 +5,45 @@ import Picker from './Picker'
 import ShareCard from './ShareCard'
 import ComparadorCompleto from './ComparadorCompleto'
 
+// Diccionario de nombres conocidos por apiId
+const nombresConocidos = {
+  278: 'Mbappé',
+  386828: 'Lamine Yamal',
+  56: 'Griezmann',
+  25759: 'Vinicius Jr.',
+  1254: 'Bellingham',
+  243048: 'Rodrygo',
+  521: 'Lewandowski',
+  306669: 'Pedri',
+  284397: 'Raphinha',
+  48063: 'Julián Álvarez',
+  37145: 'Sørloth',
+  710: 'Koke',
+  183799: 'Nico Williams',
+  184698: 'Iñaki Williams',
+  2295: 'Oyarzabal',
+  2285: 'Merino',
+  2310: 'Le Normand',
+  19229: 'Oblak',
+  750: 'De Bruyne',
+  626: 'Salah',
+  521: 'Lewandowski',
+  47: 'Benzema',
+}
+
+function formatearNombre(jugador) {
+  if (nombresConocidos[jugador.apiId]) return nombresConocidos[jugador.apiId]
+  const partes = jugador.nombre.split(' ')
+  if (partes.length <= 2) return jugador.nombre
+  return `${partes[0]} ${partes[1]}`
+}
+
+function apellidoParaCamiseta(jugador) {
+  const nombre = formatearNombre(jugador)
+  const partes = nombre.split(' ')
+  return partes[partes.length - 1]
+}
+
 const kitStyles = {
   'Real Madrid': { background: 'linear-gradient(145deg, #fff, #f0f0f0)', nameColor: '#1a1a1a', numColor: '#1a1a1a', stroke: 'none' },
   'FC Barcelona': { background: 'linear-gradient(90deg, #004d98 0%, #004d98 25%, #a50044 25%, #a50044 50%, #004d98 50%, #004d98 75%, #a50044 75%, #a50044 100%)', nameColor: '#ffed02', numColor: '#ffed02', stroke: '1px rgba(0,0,0,0.3)' },
@@ -37,7 +76,7 @@ function KitAvatar({ jugador }) {
   return (
     <div className="slot-kit" style={{ background: kit.background }}>
       <div className="slot-kit-name" style={{ color: kit.nameColor, WebkitTextStroke: kit.stroke }}>
-        {jugador.nombre.split(' ').pop()}
+        {apellidoParaCamiseta(jugador)}
       </div>
       <div className="slot-kit-num" style={{ color: kit.numColor, WebkitTextStroke: kit.stroke }}>
         {jugador.dorsal}
@@ -63,7 +102,10 @@ function App() {
 
   const seleccionarJugador = (jugador) => {
     const nuevos = [...jugadores]
-    nuevos[slotActivo] = jugador
+    nuevos[slotActivo] = {
+      ...jugador,
+      nombreMostrado: formatearNombre(jugador)
+    }
     setJugadores(nuevos)
     setPickerOpen(false)
   }
@@ -183,7 +225,7 @@ function App() {
               <>
                 <button className="slot-remove" onClick={(e) => { e.stopPropagation(); quitarJugador(i) }}>✕</button>
                 <KitAvatar jugador={jugador} />
-                <div className="slot-name">{jugador.nombre}</div>
+                <div className="slot-name">{jugador.nombreMostrado || formatearNombre(jugador)}</div>
                 <div className="slot-club">{jugador.equipo}</div>
               </>
             ) : (
