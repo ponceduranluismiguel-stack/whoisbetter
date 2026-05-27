@@ -10,37 +10,41 @@ const SEASON = '2025'
 const TODAS_LIGAS = [140, 39, 135, 78, 61, 2, 143, 3, 10]
 
 const posicionES = {
-  'Attacker': 'Delantero',
-  'Midfielder': 'Centrocampista',
-  'Defender': 'Defensa',
-  'Goalkeeper': 'Portero',
+  'Attacker': 'Delantero', 'Midfielder': 'Centrocampista',
+  'Defender': 'Defensa', 'Goalkeeper': 'Portero',
+  'Winger': 'Delantero', 'Forward': 'Delantero',
 }
 
-const trofeoLogoId = {
-  'UEFA Champions League': 2,
-  'La Liga': 140,
-  'Ligue 1': 61,
-  'Premier League': 39,
-  'Serie A': 135,
-  'Bundesliga': 78,
-  'Copa del Rey': 143,
-  'FIFA World Cup': 1,
-  'UEFA Europa League': 3,
-  'UEFA Super Cup': 531,
-  'FIFA Intercontinental Cup': 36,
-  'Trophée des Champions': 65,
-  'Coupe de France': 66,
-  'UEFA Nations League': 5,
+const posicionManual = {
+  183799: 'Delantero', 184698: 'Delantero', 9971: 'Delantero',
+  386828: 'Delantero', 278: 'Delantero', 25759: 'Delantero',
+  284397: 'Delantero', 243048: 'Delantero', 626: 'Delantero',
+  521: 'Delantero', 56: 'Delantero', 47: 'Delantero',
+  6009: 'Delantero', 306669: 'Centrocampista', 1254: 'Centrocampista',
+  710: 'Centrocampista', 750: 'Centrocampista',
+}
+
+const trofeoImportante = {
+  'UEFA Champions League': 2, 'La Liga': 140, 'Ligue 1': 61,
+  'Premier League': 39, 'Serie A': 135, 'Bundesliga': 78,
+  'Copa del Rey': 143, 'FIFA World Cup': 1, 'UEFA Europa League': 3,
+  'UEFA Conference League': 848, 'UEFA Super Cup': 531,
+  'FIFA Intercontinental Cup': 36, 'FIFA Club World Cup': 15,
+  'UEFA Nations League': 5, 'UEFA European Championship': 4,
+  'Copa America': 9, 'CONMEBOL Libertadores': 13, 'FA Cup': 45,
+  'Coupe de France': 66, 'DFB Pokal': 81, 'Coppa Italia': 137,
+  'Trophée des Champions': 65, 'Community Shield': 48,
+  'Supercoppa Italiana': 136, 'Supercopa de España': 556,
 }
 
 const nombresConocidos = {
   278: 'Mbappé', 386828: 'Lamine Yamal', 56: 'Griezmann',
   25759: 'Vinicius Jr.', 1254: 'Bellingham', 243048: 'Rodrygo',
   521: 'Lewandowski', 306669: 'Pedri', 284397: 'Raphinha',
-  48063: 'Julián Álvarez', 37145: 'Sørloth', 710: 'Koke',
+  6009: 'Julián Álvarez', 37145: 'Sørloth', 710: 'Koke',
   183799: 'Nico Williams', 184698: 'Iñaki Williams',
   2295: 'Oyarzabal', 2285: 'Merino', 19229: 'Oblak',
-  750: 'De Bruyne', 626: 'Salah', 47: 'Benzema',
+  750: 'De Bruyne', 626: 'Salah', 47: 'Benzema', 9971: 'Antony',
 }
 
 function formatearNombre(jugador) {
@@ -54,6 +58,15 @@ function apellidoParaCamiseta(jugador) {
   const nombre = formatearNombre(jugador)
   const partes = nombre.split(' ')
   return partes[partes.length - 1]
+}
+
+const delay = ms => new Promise(r => setTimeout(r, ms))
+
+async function fetchJson(url) {
+  try {
+    const r = await fetch(url)
+    return await r.json()
+  } catch { return null }
 }
 
 const kitStyles = {
@@ -108,14 +121,9 @@ function KitAvatar({ jugador }) {
 }
 
 function FichaJugador({ jugador, onClose }) {
-  const [perfil, setPerfil] = useState(null)
-  const [stats, setStats] = useState(null)
-  const [internacionales, setInternacionales] = useState(null)
-  const [titulos, setTitulos] = useState([])
-  const [titulosAgrupados, setTitulosAgrupados] = useState([])
-  const [trayectoria, setTrayectoria] = useState([])
-  const [equipoActual, setEquipoActual] = useState(null)
+  const [datos, setDatos] = useState(null)
   const [cargando, setCargando] = useState(true)
+  const [trofeoTooltip, setTrofeoTooltip] = useState(null)
 
   const fotoUrl = `${API_URL}/img/football/players/${jugador.apiId}.png`
   const nombre = jugador.nombreMostrado || jugador.nombre
@@ -123,130 +131,88 @@ function FichaJugador({ jugador, onClose }) {
   useEffect(() => {
     if (!jugador.apiId) return
     setCargando(true)
+    setDatos(null)
 
     async function cargar() {
-      const statsPromises = TODAS_LIGAS.map(id =>
-        fetch(`${API_URL}/players?id=${jugador.apiId}&season=${SEASON}&league=${id}`).then(r => r.json())
-      )
-      const [perfilRes, trofeos, intlRes, equiposRes, ...statsResultados] = await Promise.all([
-        fetch(`${API_URL}/players/profiles?player=${jugador.apiId}`).then(r => r.json()),
-        fetch(`${API_URL}/trophies?player=${jugador.apiId}`).then(r => r.json()),
-        fetch(`${API_URL}/players?id=${jugador.apiId}&season=${SEASON}&league=10`).then(r => r.json()),
-        fetch(`${API_URL}/players/teams?player=${jugador.apiId}`).then(r => r.json()),
-        ...statsPromises,
-      ])
+      const id = jugador.apiId
 
-      const p = perfilRes.response?.[0]?.player
-      if (p) {
-        setPerfil({
-          nombreCompleto: p.name,
-          edad: p.age,
-          fechaNacimiento: p.birth?.date,
-          lugarNacimiento: p.birth?.place,
-          paisNacimiento: p.birth?.country,
-          nacionalidad: p.nationality,
-          altura: p.height,
-          peso: p.weight,
-          posicion: posicionES[p.position] || p.position,
-          dorsal: p.number,
-        })
+      const perfilRes = await fetchJson(`${API_URL}/players/profiles?player=${id}`)
+      await delay(150)
+      const trofeosRes = await fetchJson(`${API_URL}/trophies?player=${id}`)
+      await delay(150)
+      const intlRes = await fetchJson(`${API_URL}/players?id=${id}&season=${SEASON}&league=10`)
+      await delay(150)
+
+      const statsResults = []
+      for (let i = 0; i < TODAS_LIGAS.length; i += 3) {
+        const grupo = TODAS_LIGAS.slice(i, i + 3)
+        const res = await Promise.all(grupo.map(lid =>
+          fetchJson(`${API_URL}/players?id=${id}&season=${SEASON}&league=${lid}`)
+        ))
+        statsResults.push(...res)
+        if (i + 3 < TODAS_LIGAS.length) await delay(200)
       }
 
-      const primerResultado = statsResultados.find(r => r.response?.[0]?.statistics?.[0]?.team)
-      if (primerResultado) {
-        const equipo = primerResultado.response[0].statistics[0].team
-        setEquipoActual({ nombre: equipo.name, logo: equipo.logo })
-      }
+      // Trayectoria via worker
+      const trayectoriaRes = await fetchJson(`${API_URL}/trayectoria?player=${id}`)
+      const trayectoria = trayectoriaRes?.trayectoria || []
 
-      const todasStats = statsResultados.flatMap(r => r.response?.[0]?.statistics || []).filter(Boolean)
+      const p = perfilRes?.response?.[0]?.player
+      const perfil = p ? {
+        nombreCompleto: p.name, edad: p.age,
+        fechaNacimiento: p.birth?.date,
+        lugarNacimiento: p.birth?.place,
+        paisNacimiento: p.birth?.country,
+        nacionalidad: p.nationality,
+        altura: p.height, peso: p.weight,
+        posicion: posicionManual[id] || posicionES[p.position] || p.position,
+        dorsal: p.number,
+      } : null
+
+      const primerStat = statsResults.find(r => r?.response?.[0]?.statistics?.[0]?.team)
+      const equipoActual = primerStat ? {
+        nombre: primerStat.response[0].statistics[0].team.name,
+        logo: primerStat.response[0].statistics[0].team.logo,
+      } : null
+
+      const todasStats = statsResults.flatMap(r => r?.response?.[0]?.statistics || []).filter(Boolean)
+      let stats = null
       if (todasStats.length > 0) {
-        const totalMinutos = todasStats.reduce((s, st) => s + (st.games?.minutes || 0), 0)
-        const totalGoles = todasStats.reduce((s, st) => s + (st.goals?.total || 0), 0)
-        const totalAsistencias = todasStats.reduce((s, st) => s + (st.goals?.assists || 0), 0)
-        const totalPartidos = todasStats.reduce((s, st) => s + (st.games?.appearences || 0), 0)
-        const totalDisparos = todasStats.reduce((s, st) => s + (st.shots?.total || 0), 0)
-        const totalPasesClave = todasStats.reduce((s, st) => s + (st.passes?.key || 0), 0)
-        const totalRegates = todasStats.reduce((s, st) => s + (st.dribbles?.success || 0), 0)
-        const totalAmarillas = todasStats.reduce((s, st) => s + (st.cards?.yellow || 0), 0)
         const ratings = todasStats.filter(st => st.games?.rating).map(st => parseFloat(st.games.rating))
         const avgRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0
-        setStats({
-          goles: totalGoles, asistencias: totalAsistencias,
-          partidos: totalPartidos, minutos: totalMinutos,
+        stats = {
+          goles: todasStats.reduce((s, st) => s + (st.goals?.total || 0), 0),
+          asistencias: todasStats.reduce((s, st) => s + (st.goals?.assists || 0), 0),
+          partidos: todasStats.reduce((s, st) => s + (st.games?.appearences || 0), 0),
+          minutos: todasStats.reduce((s, st) => s + (st.games?.minutes || 0), 0),
           rating: parseFloat(avgRating.toFixed(2)),
-          disparosTotales: totalDisparos,
-          pasesClave: totalPasesClave, regatesOk: totalRegates,
-          amarillas: totalAmarillas,
-        })
+          disparosTotales: todasStats.reduce((s, st) => s + (st.shots?.total || 0), 0),
+          pasesClave: todasStats.reduce((s, st) => s + (st.passes?.key || 0), 0),
+          regatesOk: todasStats.reduce((s, st) => s + (st.dribbles?.success || 0), 0),
+          amarillas: todasStats.reduce((s, st) => s + (st.cards?.yellow || 0), 0),
+        }
       }
 
-      const intlSt = intlRes.response?.[0]?.statistics?.[0]
-      if (intlSt) {
-        setInternacionales({
-          partidos: intlSt.games?.appearences || 0,
-          goles: intlSt.goals?.total || 0,
-        })
-      }
+      const intlSt = intlRes?.response?.[0]?.statistics?.[0]
+      const internacionales = intlSt ? {
+        partidos: intlSt.games?.appearences || 0,
+        goles: intlSt.goals?.total || 0,
+      } : null
 
-      const soloTitulos = (trofeos.response || [])
-        .filter(t => t.place === 'Winner' && t.season)
-        .slice(0, 12)
-      setTitulos(soloTitulos)
-
+      const soloGanados = (trofeosRes?.response || []).filter(t => t.place === 'Winner')
+      const soloImportantes = soloGanados.filter(t => trofeoImportante[t.league])
       const agrupados = {}
-      ;(trofeos.response || [])
-        .filter(t => t.place === 'Winner' && t.season)
-        .forEach(t => {
-          if (!agrupados[t.league]) agrupados[t.league] = 0
-          agrupados[t.league]++
-        })
-      const agr = Object.entries(agrupados)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 8)
-        .map(([liga, veces]) => ({ liga, veces, logoId: trofeoLogoId[liga] }))
-      setTitulosAgrupados(agr)
+      soloImportantes.forEach(t => {
+        if (!agrupados[t.league]) agrupados[t.league] = 0
+        agrupados[t.league]++
+      })
+      const titulosAgrupados = Object.entries(agrupados)
+        .map(([liga, veces]) => ({ liga, veces: Math.round(veces / 2), logoId: trofeoImportante[liga] }))
+        .filter(t => t.veces > 0)
+        .sort((a, b) => b.veces - a.veces)
+        .slice(0, 10)
 
-      const SELECCIONES = ['France', 'Spain', 'Brazil', 'Argentina', 'Portugal', 'Germany', 'England', 'Netherlands', 'Belgium', 'Croatia', 'Poland', 'Italy', 'Uruguay', 'Colombia', 'Morocco', 'Senegal', 'Japan', 'Korea Republic']
-      const equiposFiltrados = (equiposRes.response || [])
-        .filter(e => {
-          const n = e.team.name.toLowerCase()
-          return !n.includes('u19') && !n.includes('u21') && !n.includes('u23') &&
-                 !n.includes(' ii') && !n.includes(' b') &&
-                 !n.includes('reserve') && !n.includes('youth') &&
-                 e.seasons.length > 0 &&
-                 !SELECCIONES.includes(e.team.name)
-        })
-        .sort((a, b) => Math.min(...a.seasons) - Math.min(...b.seasons))
-        .slice(0, 6)
-
-      const TEMPORADAS_BUSCAR = ['2013','2014','2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025']
-
-      const trayectoriaConStats = await Promise.all(
-        equiposFiltrados.map(async (equipo) => {
-          try {
-            let totalPartidos = 0, totalGoles = 0, totalAsistencias = 0
-            const temporadasEquipo = TEMPORADAS_BUSCAR.filter(t => equipo.seasons.includes(parseInt(t)))
-            for (const temp of temporadasEquipo) {
-              const res = await fetch(`${API_URL}/players?id=${jugador.apiId}&season=${temp}&team=${equipo.team.id}`)
-              const data = await res.json()
-              const sts = data.response?.[0]?.statistics || []
-              totalPartidos += sts.reduce((s, st) => s + (st.games?.appearences || 0), 0)
-              totalGoles += sts.reduce((s, st) => s + (st.goals?.total || 0), 0)
-              totalAsistencias += sts.reduce((s, st) => s + (st.goals?.assists || 0), 0)
-            }
-            return {
-              id: equipo.team.id,
-              nombre: equipo.team.name,
-              logo: equipo.team.logo,
-              temporadas: `${Math.min(...equipo.seasons)}–${Math.max(...equipo.seasons)}`,
-              partidos: totalPartidos, goles: totalGoles, asistencias: totalAsistencias
-            }
-          } catch {
-            return { id: equipo.team.id, nombre: equipo.team.name, logo: equipo.team.logo, temporadas: '', partidos: 0, goles: 0, asistencias: 0 }
-          }
-        })
-      )
-      setTrayectoria(trayectoriaConStats)
+      setDatos({ perfil, equipoActual, stats, internacionales, titulosAgrupados, trayectoria })
       setCargando(false)
     }
 
@@ -275,13 +241,15 @@ function FichaJugador({ jugador, onClose }) {
     </div>
   )
 
+  const { perfil, equipoActual, stats, internacionales, titulosAgrupados, trayectoria } = datos || {}
+
   return (
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
       width: '100vw', height: '100vh',
       background: 'rgba(2,8,31,0.97)', zIndex: 9999,
       display: 'flex', alignItems: 'flex-end', overflow: 'hidden'
-    }}>
+    }} onClick={() => setTrofeoTooltip(null)}>
       <div style={{
         width: '100%', maxHeight: '95vh',
         background: 'linear-gradient(180deg, #0a1740 0%, #04102e 50%, #02081f 100%)',
@@ -302,22 +270,17 @@ function FichaJugador({ jugador, onClose }) {
           borderBottom: '1px solid rgba(255,255,255,0.06)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '14px' }}>
-            {esfera(
-              <img src={fotoUrl} alt={nombre}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }}
-                onError={e => { e.target.style.display = 'none' }} />
-            )}
-            {equipoActual && esfera(
-              <img src={`${API_URL}/img/${equipoActual.logo.replace('https://media.api-sports.io/', '')}`}
-                alt={equipoActual.nombre}
-                style={{ width: '65%', height: '65%', objectFit: 'contain' }}
-                onError={e => { e.target.style.display = 'none' }} />
-            )}
-            {perfil && esfera(
-              <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '1.8rem', color: '#ffd400', letterSpacing: '-2px' }}>
-                {perfil.dorsal || jugador.dorsal}
-              </div>
-            )}
+            {esfera(<img src={fotoUrl} alt={nombre}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }}
+              onError={e => { e.target.style.display = 'none' }} />)}
+            {equipoActual && esfera(<img
+              src={`${API_URL}/img/${equipoActual.logo.replace('https://media.api-sports.io/', '')}`}
+              alt={equipoActual.nombre}
+              style={{ width: '65%', height: '65%', objectFit: 'contain' }}
+              onError={e => { e.target.style.display = 'none' }} />)}
+            {perfil && esfera(<div style={{ fontFamily: 'Anton, sans-serif', fontSize: '1.8rem', color: '#ffd400', letterSpacing: '-2px' }}>
+              {perfil.dorsal || jugador.dorsal}
+            </div>)}
           </div>
 
           <div style={{ textAlign: 'center' }}>
@@ -326,21 +289,28 @@ function FichaJugador({ jugador, onClose }) {
             {perfil && <div style={{ fontSize: '0.6rem', fontWeight: 700, color: '#ffd400', letterSpacing: '1.5px', textTransform: 'uppercase', background: 'rgba(255,212,0,0.1)', padding: '3px 10px', borderRadius: '4px', display: 'inline-block' }}>{perfil.posicion}</div>}
           </div>
 
-          {titulosAgrupados.length > 0 && (
+          {titulosAgrupados && titulosAgrupados.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', marginTop: '12px' }}>
               {titulosAgrupados.map((t, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'rgba(255,255,255,0.95)', borderRadius: '20px', padding: '5px 10px' }}>
-                  {t.logoId ? (
-                    <img
-                      src={`${API_URL}/img/football/leagues/${t.logoId}.png`}
-                      alt={t.liga}
-                      style={{ width: '18px', height: '18px', objectFit: 'contain' }}
-                      onError={e => { e.target.style.display = 'none' }}
-                    />
-                  ) : (
-                    <span style={{ fontSize: '14px' }}>🏆</span>
+                <div key={i} style={{ position: 'relative' }}>
+                  <div onClick={e => { e.stopPropagation(); setTrofeoTooltip(trofeoTooltip === i ? null : i) }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'rgba(255,255,255,0.95)', borderRadius: '20px', padding: '5px 10px', cursor: 'pointer' }}>
+                    {t.logoId ? (
+                      <img src={`${API_URL}/img/football/leagues/${t.logoId}.png`} alt={t.liga}
+                        style={{ width: '18px', height: '18px', objectFit: 'contain' }}
+                        onError={e => { e.target.style.display = 'none' }} />
+                    ) : <span style={{ fontSize: '14px' }}>🏆</span>}
+                    <span style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.75rem', color: '#0a1740' }}>×{t.veces}</span>
+                  </div>
+                  {trofeoTooltip === i && (
+                    <div style={{
+                      position: 'absolute', bottom: '110%', left: '50%', transform: 'translateX(-50%)',
+                      background: '#0a1740', color: '#ffd400', fontFamily: 'Anton, sans-serif',
+                      fontSize: '0.65rem', padding: '5px 10px', borderRadius: '6px',
+                      whiteSpace: 'nowrap', zIndex: 10, letterSpacing: '0.5px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
+                    }}>{t.liga}</div>
                   )}
-                  <span style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.75rem', color: '#0a1740' }}>×{t.veces}</span>
                 </div>
               ))}
             </div>
@@ -394,19 +364,16 @@ function FichaJugador({ jugador, onClose }) {
               </div>
             )}
 
-            {trayectoria.length > 0 && (
+            {trayectoria && trayectoria.length > 0 && (
               <div style={{ marginBottom: '20px' }}>
                 {seccionTitulo('Trayectoria')}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {trayectoria.map((t, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05)' }}>
                       <div style={{ width: '36px', height: '36px', background: 'rgba(255,255,255,0.95)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <img
-                          src={`${API_URL}/img/${t.logo.replace('https://media.api-sports.io/', '')}`}
-                          alt={t.nombre}
+                        <img src={`${API_URL}/img/${t.logo.replace('https://media.api-sports.io/', '')}`} alt={t.nombre}
                           style={{ width: '28px', height: '28px', objectFit: 'contain' }}
-                          onError={e => { e.target.style.display = 'none' }}
-                        />
+                          onError={e => { e.target.style.display = 'none' }} />
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.9rem', color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.2px' }}>{t.nombre}</div>
@@ -425,32 +392,6 @@ function FichaJugador({ jugador, onClose }) {
                           <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '1.1rem', color: '#ffd400' }}>{t.asistencias}</div>
                           <div style={{ fontSize: '0.45rem', color: '#7a8aa8', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase' }}>A</div>
                         </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {titulos.length > 0 && (
-              <div style={{ marginBottom: '20px' }}>
-                {seccionTitulo('Palmarés')}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {titulos.map((t, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05)' }}>
-                      <div style={{ width: '28px', height: '28px', background: 'rgba(255,255,255,0.95)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        {trofeoLogoId[t.league] ? (
-                          <img
-                            src={`${API_URL}/img/football/leagues/${trofeoLogoId[t.league]}.png`}
-                            alt={t.league}
-                            style={{ width: '22px', height: '22px', objectFit: 'contain' }}
-                            onError={e => { e.target.style.display = 'none' }}
-                          />
-                        ) : <span style={{ fontSize: '14px' }}>🏆</span>}
-                      </div>
-                      <div>
-                        <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.85rem', color: '#fff', textTransform: 'uppercase' }}>{t.league}</div>
-                        <div style={{ fontSize: '0.55rem', color: '#a8b4cc', fontWeight: 600, marginTop: '2px' }}>{t.season} · {t.country}</div>
                       </div>
                     </div>
                   ))}
