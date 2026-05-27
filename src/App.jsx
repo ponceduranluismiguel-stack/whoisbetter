@@ -4,6 +4,8 @@ import './App.css'
 import Picker from './Picker'
 import ShareCard from './ShareCard'
 import ComparadorCompleto from './ComparadorCompleto'
+import FichaEquipo from './FichaEquipo'
+import Clasificaciones from './Clasificaciones'
 
 const API_URL = 'https://whoisbetter-api.ponceduranluismiguel.workers.dev'
 const SEASON = '2025'
@@ -148,7 +150,7 @@ function KitAvatar({ jugador }) {
   )
 }
 
-function FichaJugador({ jugador, onClose }) {
+function FichaJugador({ jugador, onClose, onVerEquipo }) {
   const [datos, setDatos] = useState(null)
   const [cargando, setCargando] = useState(true)
   const [trofeoTooltip, setTrofeoTooltip] = useState(null)
@@ -200,6 +202,7 @@ function FichaJugador({ jugador, onClose }) {
 
       const primerStat = statsResults.find(r => r?.response?.[0]?.statistics?.[0]?.team)
       const equipoActual = primerStat ? {
+        id: primerStat.response[0].statistics[0].team.id,
         nombre: primerStat.response[0].statistics[0].team.name,
         logo: primerStat.response[0].statistics[0].team.logo,
       } : null
@@ -304,11 +307,18 @@ function FichaJugador({ jugador, onClose }) {
             {esfera(<img src={fotoUrl} alt={nombre}
               style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }}
               onError={e => { e.target.style.display = 'none' }} />)}
-            {equipoActual && esfera(<img
-              src={`${API_URL}/img/${equipoActual.logo.replace('https://media.api-sports.io/', '')}`}
-              alt={equipoActual.nombre}
-              style={{ width: '65%', height: '65%', objectFit: 'contain' }}
-              onError={e => { e.target.style.display = 'none' }} />)}
+
+            {equipoActual && (
+              <div onClick={() => onVerEquipo && onVerEquipo(equipoActual.id, equipoActual.nombre, equipoActual.logo)}
+                style={{ cursor: onVerEquipo ? 'pointer' : 'default' }}>
+                {esfera(<img
+                  src={`${API_URL}/img/${equipoActual.logo.replace('https://media.api-sports.io/', '')}`}
+                  alt={equipoActual.nombre}
+                  style={{ width: '65%', height: '65%', objectFit: 'contain' }}
+                  onError={e => { e.target.style.display = 'none' }} />)}
+              </div>
+            )}
+
             {perfil && esfera(<div style={{ fontFamily: 'Anton, sans-serif', fontSize: '1.8rem', color: '#ffd400', letterSpacing: '-2px' }}>
               {perfil.dorsal || jugador.dorsal}
             </div>)}
@@ -316,7 +326,10 @@ function FichaJugador({ jugador, onClose }) {
 
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '1.6rem', color: '#fff', letterSpacing: '-0.5px', textTransform: 'uppercase', lineHeight: 1, marginBottom: '4px' }}>{nombre}</div>
-            <div style={{ fontSize: '0.72rem', color: '#a8b4cc', fontWeight: 600, marginBottom: '6px' }}>{jugador.equipo}</div>
+            <div onClick={() => equipoActual && onVerEquipo && onVerEquipo(equipoActual.id, equipoActual.nombre, equipoActual.logo)}
+              style={{ fontSize: '0.72rem', color: '#a8b4cc', fontWeight: 600, marginBottom: '6px', cursor: onVerEquipo ? 'pointer' : 'default', textDecoration: onVerEquipo ? 'underline' : 'none', textUnderlineOffset: '3px' }}>
+              {jugador.equipo}
+            </div>
             {perfil && <div style={{ fontSize: '0.6rem', fontWeight: 700, color: '#ffd400', letterSpacing: '1.5px', textTransform: 'uppercase', background: 'rgba(255,212,0,0.1)', padding: '3px 10px', borderRadius: '4px', display: 'inline-block' }}>{perfil.posicion}</div>}
           </div>
 
@@ -447,6 +460,15 @@ function App() {
   const [compartiendo, setCompartiendo] = useState(false)
   const [comparadorOpen, setComparadorOpen] = useState(false)
   const [fichaJugador, setFichaJugador] = useState(null)
+  const [vista, setVista] = useState('comparador')
+  const [fichaEquipo, setFichaEquipo] = useState(null)
+  const [vistaAnterior, setVistaAnterior] = useState('comparador')
+
+  const abrirEquipo = (id, nombre, logo) => {
+    setVistaAnterior(vista)
+    setFichaEquipo({ id, nombre, logo })
+    setVista('equipo')
+  }
 
   const abrirPicker = (indice) => {
     setSlotActivo(indice)
@@ -513,11 +535,37 @@ function App() {
 
   const tieneJugadores = jugadores[0] && jugadores[1]
 
+  if (vista === 'clasificaciones') {
+    return <Clasificaciones
+      onBack={() => setVista('comparador')}
+      onEquipo={(id, nombre, logo) => abrirEquipo(id, nombre, logo)}
+    />
+  }
+
+  if (vista === 'equipo' && fichaEquipo) {
+    return <FichaEquipo
+      equipoId={fichaEquipo.id}
+      equipoNombre={fichaEquipo.nombre}
+      equipoLogo={fichaEquipo.logo}
+      onBack={() => setVista(vistaAnterior)}
+      onJugador={(jugador) => setFichaJugador(jugador)}
+    />
+  }
+
   return (
     <div className="app">
       <div className="hero-tag">Comparador</div>
       <h1 className="hero-title">¿Quién es <em>mejor</em>?</h1>
       <p className="hero-sub">Elige hasta 4 jugadores</p>
+
+      <button onClick={() => setVista('clasificaciones')} style={{
+        display: 'flex', alignItems: 'center', gap: '8px', margin: '0 auto 16px',
+        background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: '20px', padding: '8px 16px', cursor: 'pointer', color: '#fff',
+        fontFamily: 'Anton, sans-serif', fontSize: '0.7rem', letterSpacing: '1.5px', textTransform: 'uppercase',
+      }}>
+        <span style={{ fontSize: '1rem' }}>🏆</span> Clasificaciones
+      </button>
 
       <button className={`context-chip ${contextOpen ? 'open' : ''}`} onClick={() => setContextOpen(!contextOpen)}>
         <span className="context-chip-left">
@@ -596,7 +644,15 @@ function App() {
       )}
 
       {fichaJugador && (
-        <FichaJugador jugador={fichaJugador} competicion={competicion} onClose={() => setFichaJugador(null)} />
+        <FichaJugador
+          jugador={fichaJugador}
+          competicion={competicion}
+          onClose={() => setFichaJugador(null)}
+          onVerEquipo={(id, nombre, logo) => {
+            setFichaJugador(null)
+            abrirEquipo(id, nombre, logo)
+          }}
+        />
       )}
 
       {pickerOpen && (
