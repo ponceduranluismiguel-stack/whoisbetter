@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 
 const API_URL = 'https://whoisbetter-api.ponceduranluismiguel.workers.dev'
-const SEASON = '2025'
 
 const CROWN_SVG = (
   <svg viewBox="0 0 24 24" fill="currentColor" style={{width:'14px',height:'14px'}}>
@@ -12,6 +11,7 @@ const CROWN_SVG = (
 const kitStyles = {
   'Real Madrid': { background: 'linear-gradient(145deg, #fff, #f0f0f0)', nameColor: '#1a1a1a', numColor: '#1a1a1a' },
   'FC Barcelona': { background: 'linear-gradient(90deg, #004d98 0%, #004d98 25%, #a50044 25%, #a50044 50%, #004d98 50%, #004d98 75%, #a50044 75%, #a50044 100%)', nameColor: '#ffed02', numColor: '#ffed02' },
+  'Barcelona': { background: 'linear-gradient(90deg, #004d98 0%, #004d98 25%, #a50044 25%, #a50044 50%, #004d98 50%, #004d98 75%, #a50044 75%, #a50044 100%)', nameColor: '#ffed02', numColor: '#ffed02' },
   'Atletico Madrid': { background: 'linear-gradient(90deg, #cb3524 0%, #cb3524 16.66%, #fff 16.66%, #fff 33.33%, #cb3524 33.33%, #cb3524 50%, #fff 50%, #fff 66.66%, #cb3524 66.66%, #cb3524 83.33%, #fff 83.33%, #fff 100%)', nameColor: '#0a1f3d', numColor: '#0a1f3d' },
   'Athletic Club': { background: 'linear-gradient(90deg, #ee2523 0%, #ee2523 50%, #fff 50%, #fff 100%)', nameColor: '#fff', numColor: '#fff' },
   'Real Sociedad': { background: 'linear-gradient(90deg, #fff 0%, #fff 20%, #0057a8 20%, #0057a8 40%, #fff 40%, #fff 60%, #0057a8 60%, #0057a8 80%, #fff 80%, #fff 100%)', nameColor: '#0a1f3d', numColor: '#0a1f3d' },
@@ -29,28 +29,55 @@ const kitStyles = {
   'PSG': { background: 'linear-gradient(145deg, #003f7f, #002d5a)', nameColor: '#fff', numColor: '#ffd700' },
 }
 
-const kitDefault = {
-  background: 'linear-gradient(135deg, #1a2750, #0a1428)',
-  nameColor: '#fff',
-  numColor: '#ffd400'
+const kitDefault = { background: 'linear-gradient(135deg, #1a2750, #0a1428)', nameColor: '#fff', numColor: '#ffd400' }
+
+const temporadaASeasons = {
+  '25/26': '2025', '24/25': '2024', '23/24': '2023',
+  '22/23': '2022', '21/22': '2021', 'Carrera': '2025',
 }
 
-export const leagueIds = {
-  'LaLiga': 140,
-  'Premier League': 39,
-  'Serie A': 135,
-  'Bundesliga': 78,
-  'Ligue 1': 61,
-  'Champions': 2,
-  'Copa del Rey': 143,
-  'Europa': 3,
-  'Selección': 10,
+const equipoALiga = {
+  'Real Madrid': 140, 'FC Barcelona': 140, 'Barcelona': 140,
+  'Atletico Madrid': 140, 'Athletic Club': 140, 'Real Sociedad': 140,
+  'Villarreal': 140, 'Real Betis': 140, 'Valencia': 140, 'Sevilla': 140,
+  'Osasuna': 140, 'Getafe': 140, 'Celta Vigo': 140, 'Rayo Vallecano': 140,
+  'Mallorca': 140, 'Girona': 140, 'Alaves': 140, 'Espanyol': 140,
+  'Las Palmas': 140, 'Leganes': 140, 'Valladolid': 140, 'Levante': 140,
+  'Manchester City': 39, 'Arsenal': 39, 'Liverpool': 39, 'Chelsea': 39,
+  'Manchester United': 39, 'Tottenham': 39, 'Newcastle': 39, 'Aston Villa': 39,
+  'Brighton': 39, 'West Ham': 39, 'Fulham': 39, 'Brentford': 39,
+  'Crystal Palace': 39, 'Wolves': 39, 'Nottingham Forest': 39, 'Everton': 39,
+  'Bournemouth': 39, 'Leicester City': 39, 'Burnley': 39, 'Ipswich': 39,
+  'Southampton': 39,
+  'Inter': 135, 'AC Milan': 135, 'Juventus': 135, 'Napoli': 135,
+  'Roma': 135, 'Lazio': 135, 'Atalanta': 135, 'Fiorentina': 135,
+  'Torino': 135, 'Bologna': 135, 'Udinese': 135, 'Genoa': 135,
+  'Bayern Munich': 78, 'Borussia Dortmund': 78, 'RB Leipzig': 78,
+  'Bayer Leverkusen': 78, 'Eintracht Frankfurt': 78, 'Wolfsburg': 78,
+  'PSG': 61, 'Monaco': 61, 'Lyon': 61, 'Marseille': 61, 'Lille': 61,
+  'Nice': 61, 'Rennes': 61, 'Lens': 61,
+}
+
+const ligaIdANombre = {
+  140: 'LaLiga', 39: 'Premier League', 135: 'Serie A',
+  78: 'Bundesliga', 61: 'Ligue 1', 2: 'Champions League',
+  143: 'Copa del Rey', 3: 'Europa League', 10: 'Selección',
+}
+
+const competicionALigaId = {
+  'LaLiga': 140, 'Premier League': 39, 'Serie A': 135,
+  'Bundesliga': 78, 'Ligue 1': 61, 'Champions': 2,
+  'Copa del Rey': 143, 'Europa': 3, 'Selección': 10,
 }
 
 const todasLasLigas = [140, 39, 135, 78, 61, 2, 143, 3, 10]
 
-async function fetchUnaLiga(apiId, leagueId) {
-  const res = await fetch(`${API_URL}/players?id=${apiId}&season=${SEASON}&league=${leagueId}`)
+function getSeason(temporada) {
+  return temporadaASeasons[temporada] || '2025'
+}
+
+async function fetchUnaLiga(apiId, leagueId, season) {
+  const res = await fetch(`${API_URL}/players?id=${apiId}&season=${season}&league=${leagueId}`)
   const data = await res.json()
   return data.response?.[0]?.statistics?.[0] || null
 }
@@ -58,97 +85,106 @@ async function fetchUnaLiga(apiId, leagueId) {
 function sumarStats(estadisticas) {
   const validas = estadisticas.filter(Boolean)
   if (validas.length === 0) return null
-  const totalMinutos = validas.reduce((s, st) => s + (st.games?.minutes || 0), 0)
-  const totalGoles = validas.reduce((s, st) => s + (st.goals?.total || 0), 0)
-  const totalAsistencias = validas.reduce((s, st) => s + (st.goals?.assists || 0), 0)
-  const totalPartidos = validas.reduce((s, st) => s + (st.games?.appearences || 0), 0)
-  const totalTitularidades = validas.reduce((s, st) => s + (st.games?.lineups || 0), 0)
-  const totalDisparosTotales = validas.reduce((s, st) => s + (st.shots?.total || 0), 0)
-  const totalDisparosPuerta = validas.reduce((s, st) => s + (st.shots?.on || 0), 0)
-  const totalPasesClave = validas.reduce((s, st) => s + (st.passes?.key || 0), 0)
-  const totalPasesTotales = validas.reduce((s, st) => s + (st.passes?.total || 0), 0)
-  const totalDuelosTotales = validas.reduce((s, st) => s + (st.duels?.total || 0), 0)
-  const totalDuelosGanados = validas.reduce((s, st) => s + (st.duels?.won || 0), 0)
-  const totalRegatesInt = validas.reduce((s, st) => s + (st.dribbles?.attempts || 0), 0)
-  const totalRegatesOk = validas.reduce((s, st) => s + (st.dribbles?.success || 0), 0)
-  const totalFaltasRecibidas = validas.reduce((s, st) => s + (st.fouls?.drawn || 0), 0)
-  const totalTackles = validas.reduce((s, st) => s + (st.tackles?.total || 0), 0)
-  const totalIntercepciones = validas.reduce((s, st) => s + (st.tackles?.interceptions || 0), 0)
-  const totalFaltasCometidas = validas.reduce((s, st) => s + (st.fouls?.committed || 0), 0)
-  const totalAmarillas = validas.reduce((s, st) => s + (st.cards?.yellow || 0), 0)
-  const totalPenaltis = validas.reduce((s, st) => s + (st.penalty?.scored || 0), 0)
+  const minutos = validas.reduce((s, st) => s + (st.games?.minutes || 0), 0)
+  const goles = validas.reduce((s, st) => s + (st.goals?.total || 0), 0)
+  const asistencias = validas.reduce((s, st) => s + (st.goals?.assists || 0), 0)
+  const disparosTotales = validas.reduce((s, st) => s + (st.shots?.total || 0), 0)
+  const disparosPuerta = validas.reduce((s, st) => s + (st.shots?.on || 0), 0)
   const avgRating = validas.reduce((s, st) => s + (parseFloat(st.games?.rating) || 0), 0) / validas.length
   const avgPrecisionPase = validas.reduce((s, st) => s + (st.passes?.accuracy || 0), 0) / validas.length
+  const duelosTotales = validas.reduce((s, st) => s + (st.duels?.total || 0), 0)
+  const duelosGanados = validas.reduce((s, st) => s + (st.duels?.won || 0), 0)
   return {
-    goles: totalGoles, asistencias: totalAsistencias,
-    gA: totalGoles + totalAsistencias,
-    partidos: totalPartidos, titularidades: totalTitularidades,
-    minutos: totalMinutos,
-    rating: parseFloat(avgRating.toFixed(2)),
-    minGol: totalGoles > 0 ? Math.round(totalMinutos / totalGoles) : 999,
-    minAsist: totalAsistencias > 0 ? Math.round(totalMinutos / totalAsistencias) : 999,
-    penaltis: totalPenaltis,
-    disparosTotales: totalDisparosTotales, disparosPuerta: totalDisparosPuerta,
-    precisionDisparo: totalDisparosTotales > 0 ? Math.round((totalDisparosPuerta / totalDisparosTotales) * 100) : 0,
-    pasesClave: totalPasesClave, pasesTotales: totalPasesTotales,
+    goles, asistencias, gA: goles + asistencias,
+    partidos: validas.reduce((s, st) => s + (st.games?.appearences || 0), 0),
+    titularidades: validas.reduce((s, st) => s + (st.games?.lineups || 0), 0),
+    minutos, rating: parseFloat(avgRating.toFixed(2)),
+    minGol: goles > 0 ? Math.round(minutos / goles) : null,
+    minAsist: asistencias > 0 ? Math.round(minutos / asistencias) : null,
+    penaltis: validas.reduce((s, st) => s + (st.penalty?.scored || 0), 0),
+    disparosTotales, disparosPuerta,
+    precisionDisparo: disparosTotales > 0 ? Math.round((disparosPuerta / disparosTotales) * 100) : 0,
+    pasesClave: validas.reduce((s, st) => s + (st.passes?.key || 0), 0),
+    pasesTotales: validas.reduce((s, st) => s + (st.passes?.total || 0), 0),
     precisionPase: parseFloat(avgPrecisionPase.toFixed(1)),
-    duelosTotales: totalDuelosTotales, duelosGanados: totalDuelosGanados,
-    pctDuelos: totalDuelosTotales > 0 ? Math.round((totalDuelosGanados / totalDuelosTotales) * 100) : 0,
-    regatesInt: totalRegatesInt, regatesOk: totalRegatesOk,
-    faltasRecibidas: totalFaltasRecibidas, tackles: totalTackles,
-    intercepciones: totalIntercepciones, faltasCometidas: totalFaltasCometidas,
-    amarillas: totalAmarillas,
+    duelosTotales, duelosGanados,
+    pctDuelos: duelosTotales > 0 ? Math.round((duelosGanados / duelosTotales) * 100) : 0,
+    regatesInt: validas.reduce((s, st) => s + (st.dribbles?.attempts || 0), 0),
+    regatesOk: validas.reduce((s, st) => s + (st.dribbles?.success || 0), 0),
+    faltasRecibidas: validas.reduce((s, st) => s + (st.fouls?.drawn || 0), 0),
+    tackles: validas.reduce((s, st) => s + (st.tackles?.total || 0), 0),
+    intercepciones: validas.reduce((s, st) => s + (st.tackles?.interceptions || 0), 0),
+    faltasCometidas: validas.reduce((s, st) => s + (st.fouls?.committed || 0), 0),
+    amarillas: validas.reduce((s, st) => s + (st.cards?.yellow || 0), 0),
   }
 }
 
-export async function fetchStatsCompleto(apiId, liga) {
-  if (liga === 'Toda la temporada') {
-    const todas = await Promise.all(todasLasLigas.map(id => fetchUnaLiga(apiId, id)))
-    return sumarStats(todas)
-  }
-  const leagueId = leagueIds[liga] || 140
-  const res = await fetch(`${API_URL}/players?id=${apiId}&season=${SEASON}&league=${leagueId}`)
-  const data = await res.json()
-  const st = data.response?.[0]?.statistics?.[0]
+function stDesdeUna(st) {
   if (!st) return null
-  const g = st.goals
-  const games = st.games
-  const minutos = games.minutes || 0
-  const goles = g.total || 0
-  const asistencias = g.assists || 0
+  const minutos = st.games?.minutes || 0
+  const goles = st.goals?.total || 0
+  const asistencias = st.goals?.assists || 0
   const disparosTotales = st.shots?.total || 0
   const disparosPuerta = st.shots?.on || 0
+  const duelosTotales = st.duels?.total || 0
+  const duelosGanados = st.duels?.won || 0
   return {
     goles, asistencias, gA: goles + asistencias,
-    partidos: games.appearences || 0, titularidades: games.lineups || 0,
-    minutos, rating: parseFloat(games.rating) || 0,
-    minGol: goles > 0 ? Math.round(minutos / goles) : 999,
-    minAsist: asistencias > 0 ? Math.round(minutos / asistencias) : 999,
+    partidos: st.games?.appearences || 0,
+    titularidades: st.games?.lineups || 0,
+    minutos, rating: parseFloat(st.games?.rating) || 0,
+    minGol: goles > 0 ? Math.round(minutos / goles) : null,
+    minAsist: asistencias > 0 ? Math.round(minutos / asistencias) : null,
     penaltis: st.penalty?.scored || 0,
     disparosTotales, disparosPuerta,
     precisionDisparo: disparosTotales > 0 ? Math.round((disparosPuerta / disparosTotales) * 100) : 0,
-    pasesClave: st.passes?.key || 0, pasesTotales: st.passes?.total || 0,
+    pasesClave: st.passes?.key || 0,
+    pasesTotales: st.passes?.total || 0,
     precisionPase: st.passes?.accuracy || 0,
-    duelosTotales: st.duels?.total || 0, duelosGanados: st.duels?.won || 0,
-    pctDuelos: st.duels?.total > 0 ? Math.round((st.duels.won / st.duels.total) * 100) : 0,
-    regatesInt: st.dribbles?.attempts || 0, regatesOk: st.dribbles?.success || 0,
-    faltasRecibidas: st.fouls?.drawn || 0, tackles: st.tackles?.total || 0,
+    duelosTotales, duelosGanados,
+    pctDuelos: duelosTotales > 0 ? Math.round((duelosGanados / duelosTotales) * 100) : 0,
+    regatesInt: st.dribbles?.attempts || 0,
+    regatesOk: st.dribbles?.success || 0,
+    faltasRecibidas: st.fouls?.drawn || 0,
+    tackles: st.tackles?.total || 0,
     intercepciones: st.tackles?.interceptions || 0,
-    faltasCometidas: st.fouls?.committed || 0, amarillas: st.cards?.yellow || 0,
+    faltasCometidas: st.fouls?.committed || 0,
+    amarillas: st.cards?.yellow || 0,
   }
+}
+
+export async function fetchStatsCompleto(apiId, competicion, temporada, equipoNombre) {
+  const season = getSeason(temporada)
+
+  if (competicion === 'Toda la temporada') {
+    const todas = await Promise.all(todasLasLigas.map(id => fetchUnaLiga(apiId, id, season)))
+    return { stats: sumarStats(todas), ligaNombre: 'Toda la temporada' }
+  }
+
+  if (competicion === 'Liga Nacional') {
+    const ligaId = equipoALiga[equipoNombre] || 140
+    const st = await fetchUnaLiga(apiId, ligaId, season)
+    return { stats: stDesdeUna(st), ligaNombre: ligaIdANombre[ligaId] || 'Liga Nacional' }
+  }
+
+  const ligaId = competicionALigaId[competicion]
+  if (ligaId) {
+    const st = await fetchUnaLiga(apiId, ligaId, season)
+    return { stats: stDesdeUna(st), ligaNombre: competicion }
+  }
+
+  return { stats: null, ligaNombre: competicion }
 }
 
 function determinarGanador(s1, s2) {
   const metricas = ['goles', 'asistencias', 'gA', 'partidos', 'minutos', 'rating']
   const menorEsMejor = ['minGol', 'minAsist']
-  let puntos1 = 0
-  let puntos2 = 0
+  let puntos1 = 0, puntos2 = 0
   const todas = [...metricas, ...menorEsMejor]
   todas.forEach(m => {
-    const esMenor = menorEsMejor.includes(m)
-    const v1 = s1[m]
-    const v2 = s2[m]
-    if (esMenor) {
+    const v1 = s1[m], v2 = s2[m]
+    if (v1 == null || v2 == null) return
+    if (menorEsMejor.includes(m)) {
       if (v1 < v2) puntos1++
       else if (v2 < v1) puntos2++
     } else {
@@ -159,89 +195,63 @@ function determinarGanador(s1, s2) {
   return { puntos1, puntos2, total: todas.length }
 }
 
-function KitConFoto({ jugador, kit, apellido }) {
-  const fotoUrl = jugador.apiId
-    ? `${API_URL}/img/football/players/${jugador.apiId}.png`
-    : null
+function fmtVal(v) {
+  if (v == null) return '—'
+  return v
+}
 
+function KitConFoto({ jugador, kit, apellido }) {
+  const fotoUrl = jugador.apiId ? `${API_URL}/img/football/players/${jugador.apiId}.png` : null
   return (
     <div className="sc-kit" style={{ background: kit.background, position: 'relative', overflow: 'visible' }}>
       {fotoUrl ? (
-        <img
-          src={fotoUrl}
-          alt={apellido}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            objectPosition: 'top center',
-            borderRadius: '11px',
-          }}
-          onError={e => {
-            e.target.style.display = 'none'
-            e.target.nextSibling && (e.target.nextSibling.style.display = 'flex')
-          }}
-        />
+        <img src={fotoUrl} alt={apellido}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', borderRadius: '11px' }}
+          onError={e => { e.target.style.display = 'none' }} />
       ) : null}
-      <div style={{
-        display: fotoUrl ? 'none' : 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '100%',
-        height: '100%',
-      }}>
+      <div style={{ display: fotoUrl ? 'none' : 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
         <div className="sc-kit-name" style={{ color: kit.nameColor }}>{apellido}</div>
         <div className="sc-kit-num" style={{ color: kit.numColor }}>{jugador.dorsal}</div>
       </div>
       <div style={{
-        position: 'absolute',
-        bottom: '-6px',
-        right: '-6px',
-        background: '#ffd400',
-        color: '#0a1740',
-        fontFamily: 'Anton, sans-serif',
-        fontSize: '0.7rem',
-        width: '22px',
-        height: '22px',
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
-        zIndex: 2,
-      }}>
-        {jugador.dorsal}
-      </div>
+        position: 'absolute', bottom: '-6px', right: '-6px',
+        background: '#ffd400', color: '#0a1740', fontFamily: 'Anton, sans-serif',
+        fontSize: '0.7rem', width: '22px', height: '22px', borderRadius: '50%',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.4)', zIndex: 2,
+      }}>{jugador.dorsal}</div>
     </div>
   )
 }
 
 function ShareCard({ jugadores, competicion, temporada }) {
   const [stats, setStats] = useState([null, null])
+  const [ligaNombre, setLigaNombre] = useState(competicion)
   const [cargando, setCargando] = useState(false)
 
   useEffect(() => {
-    if (!jugadores[0] || !jugadores[1]) return
-    if (!jugadores[0].apiId || !jugadores[1].apiId) return
+    if (!jugadores[0]?.apiId || !jugadores[1]?.apiId) return
     setCargando(true)
     setStats([null, null])
+
+    const comp = competicion === 'LaLiga' ? 'Liga Nacional' : competicion
+
     Promise.all([
-      fetchStatsCompleto(jugadores[0].apiId, competicion),
-      fetchStatsCompleto(jugadores[1].apiId, competicion),
-    ]).then(([s1, s2]) => {
-      setStats([s1, s2])
+      fetchStatsCompleto(jugadores[0].apiId, comp, temporada, jugadores[0].equipo),
+      fetchStatsCompleto(jugadores[1].apiId, comp, temporada, jugadores[1].equipo),
+    ]).then(([r1, r2]) => {
+      setStats([r1.stats, r2.stats])
+      if (r1.ligaNombre === r2.ligaNombre) setLigaNombre(r1.ligaNombre)
+      else setLigaNombre('Liga Nacional')
       setCargando(false)
     })
-  }, [jugadores, competicion])
+  }, [jugadores, competicion, temporada])
 
   if (!jugadores[0] || !jugadores[1]) return null
 
-  const j1 = jugadores[0]
-  const j2 = jugadores[1]
+  const j1 = jugadores[0], j2 = jugadores[1]
   const kit1 = kitStyles[j1.equipo] || kitDefault
   const kit2 = kitStyles[j2.equipo] || kitDefault
-
   const nombre1 = j1.nombreMostrado || j1.nombre
   const nombre2 = j2.nombreMostrado || j2.nombre
   const apellido1 = nombre1.split(' ').pop()
@@ -249,8 +259,8 @@ function ShareCard({ jugadores, competicion, temporada }) {
 
   if (cargando) {
     return (
-      <div className="share-card" style={{alignItems:'center',justifyContent:'center'}}>
-        <div style={{color:'#ffd400',fontFamily:'Anton',fontSize:'1.2rem',letterSpacing:'-0.5px'}}>
+      <div className="share-card" style={{ alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: '#ffd400', fontFamily: 'Anton', fontSize: '1.2rem', letterSpacing: '-0.5px' }}>
           CARGANDO DATOS...
         </div>
       </div>
@@ -259,11 +269,11 @@ function ShareCard({ jugadores, competicion, temporada }) {
 
   if (!stats[0] || !stats[1]) return null
 
-  const s1 = stats[0]
-  const s2 = stats[1]
+  const s1 = stats[0], s2 = stats[1]
   const { puntos1, puntos2, total } = determinarGanador(s1, s2)
   const ganador = puntos1 >= puntos2 ? nombre1 : nombre2
   const puntosGanador = puntos1 >= puntos2 ? puntos1 : puntos2
+  const etiquetaComp = competicion === 'LaLiga' ? ligaNombre : competicion
 
   const filas = [
     { label: 'Goles', v1: s1.goles, v2: s2.goles, menorEsMejor: false },
@@ -283,15 +293,13 @@ function ShareCard({ jugadores, competicion, temporada }) {
           <div className="sc-brand-ico">W</div>
           <div className="sc-brand-name">Who<span>is</span>better<span className="sc-brand-q">?</span></div>
         </div>
-        <div className="sc-context-tag">{competicion} · {temporada}</div>
+        <div className="sc-context-tag">{etiquetaComp} · {temporada}</div>
       </div>
 
       <div className="sc-players">
         <div className="sc-player">
           <div className={`sc-player-inner ${puntos1 >= puntos2 ? 'win' : ''}`}>
-            {puntos1 >= puntos2 && (
-              <div className="sc-crown">{CROWN_SVG}<span>GANA</span></div>
-            )}
+            {puntos1 >= puntos2 && <div className="sc-crown">{CROWN_SVG}<span>GANA</span></div>}
             <KitConFoto jugador={j1} kit={kit1} apellido={apellido1} />
             <div className="sc-name">{nombre1}</div>
             <div className="sc-club">{j1.equipo}</div>
@@ -305,9 +313,7 @@ function ShareCard({ jugadores, competicion, temporada }) {
 
         <div className="sc-player">
           <div className={`sc-player-inner ${puntos2 > puntos1 ? 'win' : ''}`}>
-            {puntos2 > puntos1 && (
-              <div className="sc-crown">{CROWN_SVG}<span>GANA</span></div>
-            )}
+            {puntos2 > puntos1 && <div className="sc-crown">{CROWN_SVG}<span>GANA</span></div>}
             <KitConFoto jugador={j2} kit={kit2} apellido={apellido2} />
             <div className="sc-name">{nombre2}</div>
             <div className="sc-club">{j2.equipo}</div>
@@ -317,16 +323,18 @@ function ShareCard({ jugadores, competicion, temporada }) {
 
       <div className="sc-stats">
         {filas.map((fila, i) => {
-          const gana1 = fila.menorEsMejor ? fila.v1 < fila.v2 : fila.v1 > fila.v2
-          const gana2 = fila.menorEsMejor ? fila.v2 < fila.v1 : fila.v2 > fila.v1
+          const v1 = fila.v1, v2 = fila.v2
+          const ambosValidos = v1 != null && v2 != null
+          const gana1 = ambosValidos && (fila.menorEsMejor ? v1 < v2 : v1 > v2)
+          const gana2 = ambosValidos && (fila.menorEsMejor ? v2 < v1 : v2 > v1)
           return (
             <div key={i} className="sc-stat-row">
-              <div className={`sc-stat-val left ${gana1 ? 'win' : ''}`}>{fila.v1}</div>
+              <div className={`sc-stat-val left ${gana1 ? 'win' : ''}`}>{fmtVal(v1)}</div>
               <div className="sc-stat-label">
                 {fila.label}
                 {fila.sublabel && <span className="sc-stat-src">{fila.sublabel}</span>}
               </div>
-              <div className={`sc-stat-val right ${gana2 ? 'win' : ''}`}>{fila.v2}</div>
+              <div className={`sc-stat-val right ${gana2 ? 'win' : ''}`}>{fmtVal(v2)}</div>
             </div>
           )
         })}

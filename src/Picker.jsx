@@ -5,11 +5,11 @@ const SEASON = '2025'
 const IMG_URL = 'https://whoisbetter-api.ponceduranluismiguel.workers.dev/img'
 
 const ligasConfig = [
-  { nombre: 'LaLiga', bandera: '🇪🇸', id: 140 },
-  { nombre: 'Premier League', bandera: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', id: 39 },
-  { nombre: 'Serie A', bandera: '🇮🇹', id: 135 },
-  { nombre: 'Bundesliga', bandera: '🇩🇪', id: 78 },
-  { nombre: 'Ligue 1', bandera: '🇫🇷', id: 61 },
+  { nombre: 'LaLiga', id: 140, logoId: 140 },
+  { nombre: 'Premier League', id: 39, logoId: 39 },
+  { nombre: 'Serie A', id: 135, logoId: 135 },
+  { nombre: 'Bundesliga', id: 78, logoId: 78 },
+  { nombre: 'Ligue 1', id: 61, logoId: 61 },
 ]
 
 function fotoProxy(url) {
@@ -132,7 +132,19 @@ function Picker({ onSelect, onClose }) {
 
           {paso === 'liga' && ligasConfig.map(liga => (
             <div key={liga.id} className="league-item" onClick={() => elegirLiga(liga)}>
-              <span className="league-flag">{liga.bandera}</span>
+              <div style={{
+                width: '36px', height: '36px', borderRadius: '50%',
+                background: 'rgba(255,255,255,0.95)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0, overflow: 'hidden'
+              }}>
+                <img
+                  src={`${API_URL}/img/football/leagues/${liga.logoId}.png`}
+                  alt={liga.nombre}
+                  style={{ width: '26px', height: '26px', objectFit: 'contain' }}
+                  onError={e => { e.target.style.display = 'none' }}
+                />
+              </div>
               <div className="league-info">
                 <div className="league-name">{liga.nombre}</div>
               </div>
@@ -146,12 +158,19 @@ function Picker({ onSelect, onClose }) {
 
           {paso === 'equipo' && !cargando && equipos.map(equipo => (
             <div key={equipo.id} className="league-item" onClick={() => elegirEquipo(equipo)}>
-              <img
-                src={equipo.logo}
-                alt={equipo.nombre}
-                style={{width:'32px',height:'32px',objectFit:'contain'}}
-                onError={e => e.target.style.display='none'}
-              />
+              <div style={{
+                width: '36px', height: '36px', borderRadius: '50%',
+                background: 'rgba(255,255,255,0.95)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0, overflow: 'hidden'
+              }}>
+                <img
+                  src={equipo.logo}
+                  alt={equipo.nombre}
+                  style={{ width: '28px', height: '28px', objectFit: 'contain' }}
+                  onError={e => e.target.style.display = 'none'}
+                />
+              </div>
               <div className="league-info">
                 <div className="league-name">{equipo.nombre}</div>
               </div>
@@ -171,8 +190,8 @@ function Picker({ onSelect, onClose }) {
                     <img
                       src={j.foto}
                       alt={j.nombre}
-                      style={{width:'36px',height:'36px',borderRadius:'50%',objectFit:'cover',background:'#1a2750'}}
-                      onError={e => e.target.style.display='none'}
+                      style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', background: '#1a2750' }}
+                      onError={e => e.target.style.display = 'none'}
                     />
                   ) : (
                     <div className="player-dorsal">{j.dorsal}</div>

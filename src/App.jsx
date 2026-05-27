@@ -24,6 +24,34 @@ const posicionManual = {
   710: 'Centrocampista', 750: 'Centrocampista',
 }
 
+const paisES = {
+  'France': 'Francia', 'Spain': 'España', 'Brazil': 'Brasil',
+  'Argentina': 'Argentina', 'Portugal': 'Portugal', 'Germany': 'Alemania',
+  'England': 'Inglaterra', 'Netherlands': 'Países Bajos', 'Belgium': 'Bélgica',
+  'Croatia': 'Croacia', 'Poland': 'Polonia', 'Italy': 'Italia',
+  'Uruguay': 'Uruguay', 'Colombia': 'Colombia', 'Morocco': 'Marruecos',
+  'Senegal': 'Senegal', 'Japan': 'Japón', 'Korea Republic': 'Corea del Sur',
+  'Algeria': 'Argelia', 'Nigeria': 'Nigeria', 'Cameroon': 'Camerún',
+  'Ivory Coast': 'Costa de Marfil', 'Ghana': 'Ghana', 'Tunisia': 'Túnez',
+  'Egypt': 'Egipto', 'Saudi Arabia': 'Arabia Saudí', 'Iran': 'Irán',
+  'Australia': 'Australia', 'Mexico': 'México', 'USA': 'Estados Unidos',
+  'Canada': 'Canadá', 'Switzerland': 'Suiza', 'Denmark': 'Dinamarca',
+  'Sweden': 'Suecia', 'Norway': 'Noruega', 'Austria': 'Austria',
+  'Serbia': 'Serbia', 'Turkey': 'Turquía', 'Ukraine': 'Ucrania',
+  'Romania': 'Rumanía', 'Hungary': 'Hungría', 'Scotland': 'Escocia',
+  'Wales': 'Gales', 'Czech Republic': 'República Checa', 'Slovakia': 'Eslovaquia',
+  'Slovenia': 'Eslovenia', 'Greece': 'Grecia', 'Albania': 'Albania',
+  'Georgia': 'Georgia', 'Ecuador': 'Ecuador', 'Peru': 'Perú',
+  'Chile': 'Chile', 'Paraguay': 'Paraguay', 'Venezuela': 'Venezuela',
+  'Bolivia': 'Bolivia', 'Jamaica': 'Jamaica', 'Costa Rica': 'Costa Rica',
+  'Panama': 'Panamá', 'Honduras': 'Honduras', 'El Salvador': 'El Salvador',
+  'Guinea': 'Guinea', 'Mali': 'Malí', 'Burkina Faso': 'Burkina Faso',
+  'World': 'Internacional', 'Congo DR': 'Congo', 'Gabon': 'Gabón',
+  'Finland': 'Finlandia', 'Iceland': 'Islandia', 'Israel': 'Israel',
+  'North Macedonia': 'Macedonia del Norte', 'Montenegro': 'Montenegro',
+  'Kosovo': 'Kosovo', 'Bosnia': 'Bosnia',
+}
+
 const trofeoImportante = {
   'UEFA Champions League': 2, 'La Liga': 140, 'Ligue 1': 61,
   'Premier League': 39, 'Serie A': 135, 'Bundesliga': 78,
@@ -153,18 +181,19 @@ function FichaJugador({ jugador, onClose }) {
         if (i + 3 < TODAS_LIGAS.length) await delay(200)
       }
 
-      // Trayectoria via worker
       const trayectoriaRes = await fetchJson(`${API_URL}/trayectoria?player=${id}`)
       const trayectoria = trayectoriaRes?.trayectoria || []
 
       const p = perfilRes?.response?.[0]?.player
       const perfil = p ? {
-        nombreCompleto: p.name, edad: p.age,
+        nombreCompleto: `${p.firstname} ${p.lastname}`,
+        edad: p.age,
         fechaNacimiento: p.birth?.date,
         lugarNacimiento: p.birth?.place,
-        paisNacimiento: p.birth?.country,
-        nacionalidad: p.nationality,
-        altura: p.height, peso: p.weight,
+        paisNacimiento: paisES[p.birth?.country] || p.birth?.country,
+        nacionalidad: paisES[p.nationality] || p.nationality,
+        altura: p.height,
+        peso: p.weight,
         posicion: posicionManual[id] || posicionES[p.position] || p.position,
         dorsal: p.number,
       } : null
@@ -194,7 +223,7 @@ function FichaJugador({ jugador, onClose }) {
       }
 
       const intlSt = intlRes?.response?.[0]?.statistics?.[0]
-      const internacionales = intlSt ? {
+      const internacionales = intlSt && (intlSt.games?.appearences || 0) > 0 ? {
         partidos: intlSt.games?.appearences || 0,
         goles: intlSt.goals?.total || 0,
       } : null
@@ -255,7 +284,9 @@ function FichaJugador({ jugador, onClose }) {
         background: 'linear-gradient(180deg, #0a1740 0%, #04102e 50%, #02081f 100%)',
         borderTopLeftRadius: '28px', borderTopRightRadius: '28px',
         display: 'flex', flexDirection: 'column',
-        position: 'relative', overflowY: 'auto'
+        position: 'relative', overflowY: 'auto',
+        overscrollBehavior: 'contain',
+        WebkitOverflowScrolling: 'touch',
       }}>
         <button onClick={onClose} style={{
           position: 'absolute', top: '16px', right: '16px',
@@ -500,7 +531,7 @@ function App() {
           <div className="ctx-section">
             <div className="ctx-section-label">Competición</div>
             <div className="ctx-chips">
-              {['Toda la temporada','LaLiga','Copa del Rey','Champions','Europa','Selección'].map(c => (
+              {['Toda la temporada','LaLiga','Premier League','Serie A','Bundesliga','Ligue 1','Copa del Rey','Champions','Europa','Selección'].map(c => (
                 <button key={c} className={`ctx-chip ${competicion === c ? 'active' : ''}`} onClick={() => setCompeticion(c)}>{c}</button>
               ))}
             </div>
@@ -561,7 +592,7 @@ function App() {
       )}
 
       {comparadorOpen && (
-        <ComparadorCompleto jugadores={jugadores} competicion={competicion} onClose={() => setComparadorOpen(false)} />
+        <ComparadorCompleto jugadores={jugadores} competicion={competicion} temporada={temporada} onClose={() => setComparadorOpen(false)} />
       )}
 
       {fichaJugador && (
