@@ -6,6 +6,8 @@ import ShareCard from './ShareCard'
 import ComparadorCompleto from './ComparadorCompleto'
 import FichaEquipo from './FichaEquipo'
 import Clasificaciones from './Clasificaciones'
+import Estadisticas from './Estadisticas'
+import Resultados from './Resultados'
 
 const API_URL = 'https://whoisbetter-api.ponceduranluismiguel.workers.dev'
 const SEASON = '2025'
@@ -93,10 +95,8 @@ function apellidoParaCamiseta(jugador) {
 const delay = ms => new Promise(r => setTimeout(r, ms))
 
 async function fetchJson(url) {
-  try {
-    const r = await fetch(url)
-    return await r.json()
-  } catch { return null }
+  try { const r = await fetch(url); return await r.json() }
+  catch { return null }
 }
 
 const kitStyles = {
@@ -119,10 +119,7 @@ const kitStyles = {
   'PSG': { background: 'linear-gradient(145deg, #003f7f, #002d5a)', nameColor: '#fff', numColor: '#ffd700', stroke: 'none' },
 }
 
-const kitDefault = {
-  background: 'linear-gradient(135deg, #1a2750, #0a1428)',
-  nameColor: '#fff', numColor: '#ffd400', stroke: 'none'
-}
+const kitDefault = { background: 'linear-gradient(135deg, #1a2750, #0a1428)', nameColor: '#fff', numColor: '#ffd400', stroke: 'none' }
 
 function KitAvatar({ jugador }) {
   const kit = kitStyles[jugador.equipo] || kitDefault
@@ -139,24 +136,70 @@ function KitAvatar({ jugador }) {
           <div className="slot-kit-num" style={{ color: kit.numColor, WebkitTextStroke: kit.stroke }}>{jugador.dorsal}</div>
         </>
       )}
-      <div style={{
-        position: 'absolute', bottom: '-4px', right: '-4px',
-        background: '#ffd400', color: '#0a1740', fontFamily: 'Anton, sans-serif',
-        fontSize: '0.65rem', width: '20px', height: '20px', borderRadius: '50%',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 2px 6px rgba(0,0,0,0.4)', zIndex: 2,
-      }}>{jugador.dorsal}</div>
+      <div style={{ position: 'absolute', bottom: '-4px', right: '-4px', background: '#ffd400', color: '#0a1740', fontFamily: 'Anton, sans-serif', fontSize: '0.65rem', width: '20px', height: '20px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,0.4)', zIndex: 2 }}>{jugador.dorsal}</div>
     </div>
   )
 }
 
-function FichaJugador({ jugador, onClose, onVerEquipo }) {
+// Modal de favoritos
+function ModalFavoritos({ favoritos, onClose, onVerJugador, onEliminar }) {
+  return (
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(2,8,31,0.97)', zIndex: 9998, display: 'flex', alignItems: 'flex-end' }}>
+      <div style={{ width: '100%', maxHeight: '85vh', background: 'linear-gradient(180deg, #0a1740 0%, #02081f 100%)', borderTopLeftRadius: '28px', borderTopRightRadius: '28px', overflowY: 'auto', overscrollBehavior: 'contain' }}>
+
+        <div style={{ padding: '20px 20px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '1.4rem' }}>🤍</span>
+            <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '1.2rem', color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.3px' }}>Favoritos</div>
+          </div>
+          <button onClick={onClose} style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.9rem' }}>✕</button>
+        </div>
+
+        <div style={{ padding: '16px' }}>
+          {favoritos.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '12px' }}>🤍</div>
+              <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.8rem', color: '#7a8aa8', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                Aún no tienes favoritos
+              </div>
+              <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginTop: '8px' }}>
+                Abre la ficha de un jugador y pulsa el corazón
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {favoritos.map((j, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05)' }}>
+                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', overflow: 'hidden', background: 'linear-gradient(135deg, #1a2750, #0a1428)', flexShrink: 0, border: '2px solid rgba(255,212,0,0.3)' }}>
+                    <img src={`${API_URL}/img/football/players/${j.apiId}.png`} alt={j.nombreMostrado || j.nombre}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
+                      onError={e => { e.target.style.display = 'none' }} />
+                  </div>
+                  <div style={{ flex: 1, cursor: 'pointer' }} onClick={() => { onVerJugador(j); onClose() }}>
+                    <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.95rem', color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.2px' }}>{j.nombreMostrado || j.nombre}</div>
+                    <div style={{ fontSize: '0.55rem', color: '#7a8aa8', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginTop: '2px' }}>{j.equipo}</div>
+                  </div>
+                  <button onClick={() => onEliminar(j.apiId)} style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', flexShrink: 0 }}>
+                    🤍
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function FichaJugador({ jugador, onClose, onVerEquipo, favoritos, onToggleFavorito }) {
   const [datos, setDatos] = useState(null)
   const [cargando, setCargando] = useState(true)
   const [trofeoTooltip, setTrofeoTooltip] = useState(null)
 
   const fotoUrl = `${API_URL}/img/football/players/${jugador.apiId}.png`
   const nombre = jugador.nombreMostrado || jugador.nombre
+  const esFavorito = favoritos.some(f => f.apiId === jugador.apiId)
 
   useEffect(() => {
     if (!jugador.apiId) return
@@ -165,7 +208,6 @@ function FichaJugador({ jugador, onClose, onVerEquipo }) {
 
     async function cargar() {
       const id = jugador.apiId
-
       const perfilRes = await fetchJson(`${API_URL}/players/profiles?player=${id}`)
       await delay(150)
       const trofeosRes = await fetchJson(`${API_URL}/trophies?player=${id}`)
@@ -176,9 +218,7 @@ function FichaJugador({ jugador, onClose, onVerEquipo }) {
       const statsResults = []
       for (let i = 0; i < TODAS_LIGAS.length; i += 3) {
         const grupo = TODAS_LIGAS.slice(i, i + 3)
-        const res = await Promise.all(grupo.map(lid =>
-          fetchJson(`${API_URL}/players?id=${id}&season=${SEASON}&league=${lid}`)
-        ))
+        const res = await Promise.all(grupo.map(lid => fetchJson(`${API_URL}/players?id=${id}&season=${SEASON}&league=${lid}`)))
         statsResults.push(...res)
         if (i + 3 < TODAS_LIGAS.length) await delay(200)
       }
@@ -189,13 +229,11 @@ function FichaJugador({ jugador, onClose, onVerEquipo }) {
       const p = perfilRes?.response?.[0]?.player
       const perfil = p ? {
         nombreCompleto: `${p.firstname} ${p.lastname}`,
-        edad: p.age,
-        fechaNacimiento: p.birth?.date,
+        edad: p.age, fechaNacimiento: p.birth?.date,
         lugarNacimiento: p.birth?.place,
         paisNacimiento: paisES[p.birth?.country] || p.birth?.country,
         nacionalidad: paisES[p.nationality] || p.nationality,
-        altura: p.height,
-        peso: p.weight,
+        altura: p.height, peso: p.weight,
         posicion: posicionManual[id] || posicionES[p.position] || p.position,
         dorsal: p.number,
       } : null
@@ -234,20 +272,14 @@ function FichaJugador({ jugador, onClose, onVerEquipo }) {
       const soloGanados = (trofeosRes?.response || []).filter(t => t.place === 'Winner')
       const soloImportantes = soloGanados.filter(t => trofeoImportante[t.league])
       const agrupados = {}
-      soloImportantes.forEach(t => {
-        if (!agrupados[t.league]) agrupados[t.league] = 0
-        agrupados[t.league]++
-      })
+      soloImportantes.forEach(t => { if (!agrupados[t.league]) agrupados[t.league] = 0; agrupados[t.league]++ })
       const titulosAgrupados = Object.entries(agrupados)
         .map(([liga, veces]) => ({ liga, veces: Math.round(veces / 2), logoId: trofeoImportante[liga] }))
-        .filter(t => t.veces > 0)
-        .sort((a, b) => b.veces - a.veces)
-        .slice(0, 10)
+        .filter(t => t.veces > 0).sort((a, b) => b.veces - a.veces).slice(0, 10)
 
       setDatos({ perfil, equipoActual, stats, internacionales, titulosAgrupados, trayectoria })
       setCargando(false)
     }
-
     cargar()
   }, [jugador.apiId])
 
@@ -263,12 +295,7 @@ function FichaJugador({ jugador, onClose, onVerEquipo }) {
   )
 
   const esfera = (contenido, size = '80px') => (
-    <div style={{
-      width: size, height: size, borderRadius: '50%', overflow: 'hidden',
-      background: 'linear-gradient(135deg, #1a2750, #0a1428)', flexShrink: 0,
-      boxShadow: '0 8px 24px rgba(0,0,0,0.5)', border: '2px solid rgba(255,212,0,0.3)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center'
-    }}>
+    <div style={{ width: size, height: size, borderRadius: '50%', overflow: 'hidden', background: 'linear-gradient(135deg, #1a2750, #0a1428)', flexShrink: 0, boxShadow: '0 8px 24px rgba(0,0,0,0.5)', border: '2px solid rgba(255,212,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       {contenido}
     </div>
   )
@@ -276,58 +303,34 @@ function FichaJugador({ jugador, onClose, onVerEquipo }) {
   const { perfil, equipoActual, stats, internacionales, titulosAgrupados, trayectoria } = datos || {}
 
   return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      width: '100vw', height: '100vh',
-      background: 'rgba(2,8,31,0.97)', zIndex: 9999,
-      display: 'flex', alignItems: 'flex-end', overflow: 'hidden'
-    }} onClick={() => setTrofeoTooltip(null)}>
-      <div style={{
-        width: '100%', maxHeight: '95vh',
-        background: 'linear-gradient(180deg, #0a1740 0%, #04102e 50%, #02081f 100%)',
-        borderTopLeftRadius: '28px', borderTopRightRadius: '28px',
-        display: 'flex', flexDirection: 'column',
-        position: 'relative', overflowY: 'auto',
-        overscrollBehavior: 'contain',
-        WebkitOverflowScrolling: 'touch',
-      }}>
-        <button onClick={onClose} style={{
-          position: 'absolute', top: '16px', right: '16px',
-          width: '32px', height: '32px', borderRadius: '50%',
-          background: 'rgba(255,255,255,0.08)', border: 'none',
-          color: '#fff', cursor: 'pointer', fontSize: '0.9rem', zIndex: 2
-        }}>✕</button>
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100vh', background: 'rgba(2,8,31,0.97)', zIndex: 9999, display: 'flex', alignItems: 'flex-end', overflow: 'hidden' }} onClick={() => setTrofeoTooltip(null)}>
+      <div style={{ width: '100%', maxHeight: '95vh', background: 'linear-gradient(180deg, #0a1740 0%, #04102e 50%, #02081f 100%)', borderTopLeftRadius: '28px', borderTopRightRadius: '28px', display: 'flex', flexDirection: 'column', position: 'relative', overflowY: 'auto', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}>
 
-        <div style={{
-          padding: '24px 20px 16px',
-          background: 'linear-gradient(180deg, rgba(255,212,0,0.08), transparent)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)'
-        }}>
+        {/* Botones cerrar y favorito */}
+        <div style={{ position: 'absolute', top: '16px', right: '16px', display: 'flex', gap: '8px', zIndex: 2 }}>
+          <button
+            onClick={() => onToggleFavorito(jugador)}
+            style={{ width: '36px', height: '36px', borderRadius: '50%', background: esFavorito ? 'rgba(255,100,100,0.2)' : 'rgba(255,255,255,0.08)', border: esFavorito ? '1px solid rgba(255,100,100,0.4)' : 'none', cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+          >
+            {esFavorito ? '❤️' : '🤍'}
+          </button>
+          <button onClick={onClose} style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+        </div>
+
+        <div style={{ padding: '24px 20px 16px', background: 'linear-gradient(180deg, rgba(255,212,0,0.08), transparent)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '14px' }}>
-            {esfera(<img src={fotoUrl} alt={nombre}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }}
-              onError={e => { e.target.style.display = 'none' }} />)}
-
+            {esfera(<img src={fotoUrl} alt={nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} onError={e => { e.target.style.display = 'none' }} />)}
             {equipoActual && (
-              <div onClick={() => onVerEquipo && onVerEquipo(equipoActual.id, equipoActual.nombre, equipoActual.logo)}
-                style={{ cursor: onVerEquipo ? 'pointer' : 'default' }}>
-                {esfera(<img
-                  src={`${API_URL}/img/${equipoActual.logo.replace('https://media.api-sports.io/', '')}`}
-                  alt={equipoActual.nombre}
-                  style={{ width: '65%', height: '65%', objectFit: 'contain' }}
-                  onError={e => { e.target.style.display = 'none' }} />)}
+              <div onClick={() => onVerEquipo && onVerEquipo(equipoActual.id, equipoActual.nombre, equipoActual.logo)} style={{ cursor: onVerEquipo ? 'pointer' : 'default' }}>
+                {esfera(<img src={`${API_URL}/img/${equipoActual.logo.replace('https://media.api-sports.io/', '')}`} alt={equipoActual.nombre} style={{ width: '65%', height: '65%', objectFit: 'contain' }} onError={e => { e.target.style.display = 'none' }} />)}
               </div>
             )}
-
-            {perfil && esfera(<div style={{ fontFamily: 'Anton, sans-serif', fontSize: '1.8rem', color: '#ffd400', letterSpacing: '-2px' }}>
-              {perfil.dorsal || jugador.dorsal}
-            </div>)}
+            {perfil && esfera(<div style={{ fontFamily: 'Anton, sans-serif', fontSize: '1.8rem', color: '#ffd400', letterSpacing: '-2px' }}>{perfil.dorsal || jugador.dorsal}</div>)}
           </div>
 
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '1.6rem', color: '#fff', letterSpacing: '-0.5px', textTransform: 'uppercase', lineHeight: 1, marginBottom: '4px' }}>{nombre}</div>
-            <div onClick={() => equipoActual && onVerEquipo && onVerEquipo(equipoActual.id, equipoActual.nombre, equipoActual.logo)}
-              style={{ fontSize: '0.72rem', color: '#a8b4cc', fontWeight: 600, marginBottom: '6px', cursor: onVerEquipo ? 'pointer' : 'default', textDecoration: onVerEquipo ? 'underline' : 'none', textUnderlineOffset: '3px' }}>
+            <div onClick={() => equipoActual && onVerEquipo && onVerEquipo(equipoActual.id, equipoActual.nombre, equipoActual.logo)} style={{ fontSize: '0.72rem', color: '#a8b4cc', fontWeight: 600, marginBottom: '6px', cursor: onVerEquipo ? 'pointer' : 'default', textDecoration: onVerEquipo ? 'underline' : 'none', textUnderlineOffset: '3px' }}>
               {jugador.equipo}
             </div>
             {perfil && <div style={{ fontSize: '0.6rem', fontWeight: 700, color: '#ffd400', letterSpacing: '1.5px', textTransform: 'uppercase', background: 'rgba(255,212,0,0.1)', padding: '3px 10px', borderRadius: '4px', display: 'inline-block' }}>{perfil.posicion}</div>}
@@ -337,23 +340,12 @@ function FichaJugador({ jugador, onClose, onVerEquipo }) {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', marginTop: '12px' }}>
               {titulosAgrupados.map((t, i) => (
                 <div key={i} style={{ position: 'relative' }}>
-                  <div onClick={e => { e.stopPropagation(); setTrofeoTooltip(trofeoTooltip === i ? null : i) }}
-                    style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'rgba(255,255,255,0.95)', borderRadius: '20px', padding: '5px 10px', cursor: 'pointer' }}>
-                    {t.logoId ? (
-                      <img src={`${API_URL}/img/football/leagues/${t.logoId}.png`} alt={t.liga}
-                        style={{ width: '18px', height: '18px', objectFit: 'contain' }}
-                        onError={e => { e.target.style.display = 'none' }} />
-                    ) : <span style={{ fontSize: '14px' }}>🏆</span>}
+                  <div onClick={e => { e.stopPropagation(); setTrofeoTooltip(trofeoTooltip === i ? null : i) }} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: 'rgba(255,255,255,0.95)', borderRadius: '20px', padding: '5px 10px', cursor: 'pointer' }}>
+                    {t.logoId ? <img src={`${API_URL}/img/football/leagues/${t.logoId}.png`} alt={t.liga} style={{ width: '18px', height: '18px', objectFit: 'contain' }} onError={e => { e.target.style.display = 'none' }} /> : <span style={{ fontSize: '14px' }}>🏆</span>}
                     <span style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.75rem', color: '#0a1740' }}>×{t.veces}</span>
                   </div>
                   {trofeoTooltip === i && (
-                    <div style={{
-                      position: 'absolute', bottom: '110%', left: '50%', transform: 'translateX(-50%)',
-                      background: '#0a1740', color: '#ffd400', fontFamily: 'Anton, sans-serif',
-                      fontSize: '0.65rem', padding: '5px 10px', borderRadius: '6px',
-                      whiteSpace: 'nowrap', zIndex: 10, letterSpacing: '0.5px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
-                    }}>{t.liga}</div>
+                    <div style={{ position: 'absolute', bottom: '110%', left: '50%', transform: 'translateX(-50%)', background: '#0a1740', color: '#ffd400', fontFamily: 'Anton, sans-serif', fontSize: '0.65rem', padding: '5px 10px', borderRadius: '6px', whiteSpace: 'nowrap', zIndex: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>{t.liga}</div>
                   )}
                 </div>
               ))}
@@ -362,12 +354,9 @@ function FichaJugador({ jugador, onClose, onVerEquipo }) {
         </div>
 
         {cargando ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: '#ffd400', fontFamily: 'Anton, sans-serif', fontSize: '1rem', letterSpacing: '1px' }}>
-            CARGANDO DATOS...
-          </div>
+          <div style={{ padding: '40px', textAlign: 'center', color: '#ffd400', fontFamily: 'Anton, sans-serif', fontSize: '1rem', letterSpacing: '1px' }}>CARGANDO DATOS...</div>
         ) : (
           <div style={{ padding: '16px' }}>
-
             {perfil && (
               <div style={{ marginBottom: '20px' }}>
                 {seccionTitulo('Datos personales')}
@@ -384,7 +373,7 @@ function FichaJugador({ jugador, onClose, onVerEquipo }) {
                   ].filter(Boolean).map((d, i, arr) => (
                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
                       <div style={{ fontSize: '0.55rem', fontWeight: 700, color: '#7a8aa8', letterSpacing: '1px', textTransform: 'uppercase' }}>{d.label}</div>
-                      <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.85rem', color: '#fff', letterSpacing: '-0.2px', textAlign: 'right', maxWidth: '60%' }}>{d.val}</div>
+                      <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.85rem', color: '#fff', textAlign: 'right', maxWidth: '60%' }}>{d.val}</div>
                     </div>
                   ))}
                 </div>
@@ -415,37 +404,50 @@ function FichaJugador({ jugador, onClose, onVerEquipo }) {
                   {trayectoria.map((t, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05)' }}>
                       <div style={{ width: '36px', height: '36px', background: 'rgba(255,255,255,0.95)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <img src={`${API_URL}/img/${t.logo.replace('https://media.api-sports.io/', '')}`} alt={t.nombre}
-                          style={{ width: '28px', height: '28px', objectFit: 'contain' }}
-                          onError={e => { e.target.style.display = 'none' }} />
+                        <img src={`${API_URL}/img/${t.logo.replace('https://media.api-sports.io/', '')}`} alt={t.nombre} style={{ width: '28px', height: '28px', objectFit: 'contain' }} onError={e => { e.target.style.display = 'none' }} />
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.9rem', color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.2px' }}>{t.nombre}</div>
+                        <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.9rem', color: '#fff', textTransform: 'uppercase' }}>{t.nombre}</div>
                         <div style={{ fontSize: '0.5rem', color: '#7a8aa8', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginTop: '2px' }}>{t.temporadas}</div>
                       </div>
                       <div style={{ display: 'flex', gap: '12px' }}>
-                        <div style={{ textAlign: 'center' }}>
-                          <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '1.1rem', color: '#ffd400' }}>{t.partidos}</div>
-                          <div style={{ fontSize: '0.45rem', color: '#7a8aa8', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase' }}>PJ</div>
-                        </div>
-                        <div style={{ textAlign: 'center' }}>
-                          <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '1.1rem', color: '#ffd400' }}>{t.goles}</div>
-                          <div style={{ fontSize: '0.45rem', color: '#7a8aa8', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase' }}>G</div>
-                        </div>
-                        <div style={{ textAlign: 'center' }}>
-                          <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '1.1rem', color: '#ffd400' }}>{t.asistencias}</div>
-                          <div style={{ fontSize: '0.45rem', color: '#7a8aa8', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase' }}>A</div>
-                        </div>
+                        {[{ v: t.partidos, l: 'PJ' }, { v: t.goles, l: 'G' }, { v: t.asistencias, l: 'A' }].map((s, j) => (
+                          <div key={j} style={{ textAlign: 'center' }}>
+                            <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '1.1rem', color: '#ffd400' }}>{s.v}</div>
+                            <div style={{ fontSize: '0.45rem', color: '#7a8aa8', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase' }}>{s.l}</div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
-
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+function TabBar({ vista, setVista }) {
+  const tabs = [
+    { key: 'comparador', label: 'Comparador', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M9 3H5C3.9 3 3 3.9 3 5V9C3 10.1 3.9 11 5 11H9C10.1 11 11 10.1 11 9V5C11 3.9 10.1 3 9 3M9 9H5V5H9M19 3H15C13.9 3 13 3.9 13 5V9C13 10.1 13.9 11 15 11H19C20.1 11 21 10.1 21 9V5C21 3.9 20.1 3 19 3M19 9H15V5H19M9 13H5C3.9 13 3 13.9 3 15V19C3 20.1 3.9 21 5 21H9C10.1 21 11 20.1 11 19V15C11 13.9 10.1 13 9 13M9 19H5V15H9M19 13H15C13.9 13 13 13.9 13 15V19C13 20.1 13.9 21 15 21H19C20.1 21 21 20.1 21 19V15C21 13.9 20.1 13 19 13M19 19H15V15H19Z"/></svg> },
+    { key: 'clasificaciones', label: 'Clasificaciones', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3H19C20.1 3 21 3.9 21 5V19C21 20.1 20.1 21 19 21H5C3.9 21 3 20.1 3 19V5C3 3.9 3.9 3 5 3M5 5V19H19V5H5M7 7H17V9H7V7M7 11H17V13H7V11M7 15H14V17H7V15Z"/></svg> },
+    { key: 'estadisticas', label: 'Estadísticas', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M22 21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z"/></svg> },
+    { key: 'resultados', label: 'Resultados', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3M19 19H5V5H19V19M7 10H9V17H7V10M11 7H13V17H11V7M15 13H17V17H15V13Z"/></svg> },
+  ]
+  return (
+    <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: '64px', background: 'rgba(4,16,46,0.97)', backdropFilter: 'blur(20px)', borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-around', zIndex: 1000, paddingBottom: 'env(safe-area-inset-bottom)' }}>
+      {tabs.map(tab => {
+        const activo = vista === tab.key
+        return (
+          <button key={tab.key} onClick={() => setVista(tab.key)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'none', border: 'none', cursor: 'pointer', color: activo ? '#ffd400' : 'rgba(255,255,255,0.4)', transition: 'color 0.2s', padding: '8px 16px' }}>
+            {tab.icon}
+            <span style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.5rem', letterSpacing: '1px', textTransform: 'uppercase' }}>{tab.label}</span>
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -463,6 +465,28 @@ function App() {
   const [vista, setVista] = useState('comparador')
   const [fichaEquipo, setFichaEquipo] = useState(null)
   const [vistaAnterior, setVistaAnterior] = useState('comparador')
+  const [favoritos, setFavoritos] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('whoisbetter_favoritos') || '[]') }
+    catch { return [] }
+  })
+  const [modalFavoritos, setModalFavoritos] = useState(false)
+
+  // Guardar favoritos en localStorage cada vez que cambian
+  useEffect(() => {
+    localStorage.setItem('whoisbetter_favoritos', JSON.stringify(favoritos))
+  }, [favoritos])
+
+  const toggleFavorito = (jugador) => {
+    setFavoritos(prev => {
+      const yaEsta = prev.some(f => f.apiId === jugador.apiId)
+      if (yaEsta) return prev.filter(f => f.apiId !== jugador.apiId)
+      return [...prev, { apiId: jugador.apiId, nombre: jugador.nombre, nombreMostrado: jugador.nombreMostrado || jugador.nombre, equipo: jugador.equipo, dorsal: jugador.dorsal }]
+    })
+  }
+
+  const eliminarFavorito = (apiId) => {
+    setFavoritos(prev => prev.filter(f => f.apiId !== apiId))
+  }
 
   const abrirEquipo = (id, nombre, logo) => {
     setVistaAnterior(vista)
@@ -470,10 +494,7 @@ function App() {
     setVista('equipo')
   }
 
-  const abrirPicker = (indice) => {
-    setSlotActivo(indice)
-    setPickerOpen(true)
-  }
+  const abrirPicker = (indice) => { setSlotActivo(indice); setPickerOpen(true) }
 
   const seleccionarJugador = (jugador) => {
     const nuevos = [...jugadores]
@@ -492,10 +513,8 @@ function App() {
     const elemento = document.querySelector('.share-card')
     if (!elemento) return null
     await document.fonts.ready
-    try {
-      const blob = await domtoimage.toBlob(elemento, { scale: 3, bgcolor: '#04102e' })
-      return blob
-    } catch(e) { return null }
+    try { return await domtoimage.toBlob(elemento, { scale: 3, bgcolor: '#04102e' }) }
+    catch { return null }
   }
 
   const descargar = async () => {
@@ -509,7 +528,7 @@ function App() {
       document.body.appendChild(a); a.click()
       document.body.removeChild(a)
       setTimeout(() => URL.revokeObjectURL(url), 1000)
-    } catch(e) {}
+    } catch { }
     setCompartiendo(false)
   }
 
@@ -529,136 +548,152 @@ function App() {
         document.body.removeChild(a)
         setTimeout(() => URL.revokeObjectURL(url), 1000)
       }
-    } catch(e) {}
+    } catch { }
     setCompartiendo(false)
   }
 
   const tieneJugadores = jugadores[0] && jugadores[1]
 
-  if (vista === 'clasificaciones') {
-    return <Clasificaciones
-      onBack={() => setVista('comparador')}
-      onEquipo={(id, nombre, logo) => abrirEquipo(id, nombre, logo)}
-    />
-  }
+  if (vista === 'estadisticas') return (
+    <>
+      <Estadisticas onBack={() => setVista('comparador')} onJugador={(j) => { setFichaJugador(j); setVista('comparador') }} />
+      <TabBar vista={vista} setVista={setVista} />
+    </>
+  )
 
-  if (vista === 'equipo' && fichaEquipo) {
-    return <FichaEquipo
-      equipoId={fichaEquipo.id}
-      equipoNombre={fichaEquipo.nombre}
-      equipoLogo={fichaEquipo.logo}
-      onBack={() => setVista(vistaAnterior)}
-      onJugador={(jugador) => setFichaJugador(jugador)}
-    />
-  }
+  if (vista === 'clasificaciones') return (
+    <>
+      <Clasificaciones onBack={() => setVista('comparador')} onEquipo={(id, nombre, logo) => abrirEquipo(id, nombre, logo)} />
+      <TabBar vista={vista} setVista={setVista} />
+    </>
+  )
+
+  if (vista === 'resultados') return (
+    <>
+      <Resultados onBack={() => setVista('comparador')} />
+      <TabBar vista={vista} setVista={setVista} />
+    </>
+  )
+
+  if (vista === 'equipo' && fichaEquipo) return (
+    <>
+      <FichaEquipo
+        equipoId={fichaEquipo.id} equipoNombre={fichaEquipo.nombre} equipoLogo={fichaEquipo.logo}
+        onBack={() => setVista(vistaAnterior)}
+        onJugador={(j) => setFichaJugador(j)}
+      />
+      <TabBar vista={vistaAnterior} setVista={setVista} />
+    </>
+  )
 
   return (
-    <div className="app">
-      <div className="hero-tag">Comparador</div>
-      <h1 className="hero-title">¿Quién es <em>mejor</em>?</h1>
-      <p className="hero-sub">Elige hasta 4 jugadores</p>
+    <>
+      <div className="app" style={{ paddingBottom: '70px' }}>
 
-      <button onClick={() => setVista('clasificaciones')} style={{
-        display: 'flex', alignItems: 'center', gap: '8px', margin: '0 auto 16px',
-        background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-        borderRadius: '20px', padding: '8px 16px', cursor: 'pointer', color: '#fff',
-        fontFamily: 'Anton, sans-serif', fontSize: '0.7rem', letterSpacing: '1.5px', textTransform: 'uppercase',
-      }}>
-        <span style={{ fontSize: '1rem' }}>🏆</span> Clasificaciones
-      </button>
-
-      <button className={`context-chip ${contextOpen ? 'open' : ''}`} onClick={() => setContextOpen(!contextOpen)}>
-        <span className="context-chip-left">
-          <span className="context-chip-label">{competicion} · {temporada}</span>
-        </span>
-        <span className="context-chip-arrow">▼</span>
-      </button>
-
-      {contextOpen && (
-        <div className="context-panel">
-          <div className="ctx-section">
-            <div className="ctx-section-label">Competición</div>
-            <div className="ctx-chips">
-              {['Toda la temporada','LaLiga','Premier League','Serie A','Bundesliga','Ligue 1','Copa del Rey','Champions','Europa','Selección'].map(c => (
-                <button key={c} className={`ctx-chip ${competicion === c ? 'active' : ''}`} onClick={() => setCompeticion(c)}>{c}</button>
-              ))}
-            </div>
-          </div>
-          <div className="ctx-section">
-            <div className="ctx-section-label">Temporada</div>
-            <div className="ctx-chips">
-              {['25/26','24/25','23/24','22/23','21/22','Carrera'].map(t => (
-                <button key={t} className={`ctx-chip ${temporada === t ? 'active' : ''}`} onClick={() => setTemporada(t)}>{t}</button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="slots-grid">
-        {jugadores.map((jugador, i) => (
-          <div key={i} className={`slot ${jugador ? 'filled' : 'empty'}`}
-            onClick={() => {
-              if (jugador) setFichaJugador(jugador)
-              else abrirPicker(i)
-            }}>
-            {jugador ? (
-              <>
-                <button className="slot-remove" onClick={(e) => { e.stopPropagation(); quitarJugador(i) }}>✕</button>
-                <KitAvatar jugador={jugador} />
-                <div className="slot-name">{jugador.nombreMostrado || formatearNombre(jugador)}</div>
-                <div className="slot-club">{jugador.equipo}</div>
-              </>
-            ) : (
-              <>
-                <div className="slot-plus">+</div>
-                <div className="slot-empty-label">Añadir jugador</div>
-              </>
+        {/* Header con corazón de favoritos */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '8px 4px 0' }}>
+          <button onClick={() => setModalFavoritos(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: favoritos.length > 0 ? 'rgba(255,100,100,0.12)' : 'rgba(255,255,255,0.06)', border: favoritos.length > 0 ? '1px solid rgba(255,100,100,0.3)' : '1px solid rgba(255,255,255,0.1)', borderRadius: '20px', padding: '6px 12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+            <span style={{ fontSize: '1rem' }}>{favoritos.length > 0 ? '❤️' : '🤍'}</span>
+            {favoritos.length > 0 && (
+              <span style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.7rem', color: '#ff6464', letterSpacing: '0.5px' }}>{favoritos.length}</span>
             )}
-          </div>
-        ))}
-      </div>
-
-      <ShareCard jugadores={jugadores} competicion={competicion} temporada={temporada} />
-
-      {tieneJugadores && (
-        <>
-          <button className="btn-comparador-completo" onClick={() => setComparadorOpen(true)}>
-            Comparación completa →
           </button>
-          <div className="actions">
-            <button className="action-btn action-share" onClick={compartir} disabled={compartiendo}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
-              {compartiendo ? 'Generando...' : 'Compartir'}
-            </button>
-            <button className="action-btn action-download" onClick={descargar} disabled={compartiendo}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20H19V18H5M19 9H15V3H9V9H5L12 16L19 9Z"/></svg>
-              Descargar
-            </button>
+        </div>
+
+        <div className="hero-tag">Comparador</div>
+        <h1 className="hero-title">¿Quién es <em>mejor</em>?</h1>
+        <p className="hero-sub">Elige hasta 4 jugadores</p>
+
+        <div className="slots-grid">
+          {jugadores.map((jugador, i) => (
+            <div key={i} className={`slot ${jugador ? 'filled' : 'empty'}`}
+              onClick={() => { if (jugador) setFichaJugador(jugador); else abrirPicker(i) }}>
+              {jugador ? (
+                <>
+                  <button className="slot-remove" onClick={(e) => { e.stopPropagation(); quitarJugador(i) }}>✕</button>
+                  <KitAvatar jugador={jugador} />
+                  <div className="slot-name">{jugador.nombreMostrado || formatearNombre(jugador)}</div>
+                  <div className="slot-club">{jugador.equipo}</div>
+                </>
+              ) : (
+                <>
+                  <div className="slot-plus">+</div>
+                  <div className="slot-empty-label">Añadir jugador</div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <button className={`context-chip ${contextOpen ? 'open' : ''}`} onClick={() => setContextOpen(!contextOpen)}>
+          <span className="context-chip-left"><span className="context-chip-label">{competicion} · {temporada}</span></span>
+          <span className="context-chip-arrow">▼</span>
+        </button>
+
+        {contextOpen && (
+          <div className="context-panel">
+            <div className="ctx-section">
+              <div className="ctx-section-label">Competición</div>
+              <div className="ctx-chips">
+                {['Toda la temporada', 'LaLiga', 'Premier League', 'Serie A', 'Bundesliga', 'Ligue 1', 'Copa del Rey', 'Champions', 'Europa', 'Selección'].map(c => (
+                  <button key={c} className={`ctx-chip ${competicion === c ? 'active' : ''}`} onClick={() => setCompeticion(c)}>{c}</button>
+                ))}
+              </div>
+            </div>
+            <div className="ctx-section">
+              <div className="ctx-section-label">Temporada</div>
+              <div className="ctx-chips">
+                {['25/26', '24/25', '23/24', '22/23', '21/22', 'Carrera'].map(t => (
+                  <button key={t} className={`ctx-chip ${temporada === t ? 'active' : ''}`} onClick={() => setTemporada(t)}>{t}</button>
+                ))}
+              </div>
+            </div>
           </div>
-        </>
-      )}
+        )}
 
-      {comparadorOpen && (
-        <ComparadorCompleto jugadores={jugadores} competicion={competicion} temporada={temporada} onClose={() => setComparadorOpen(false)} />
-      )}
+        <ShareCard jugadores={jugadores} competicion={competicion} temporada={temporada} />
 
-      {fichaJugador && (
-        <FichaJugador
-          jugador={fichaJugador}
-          competicion={competicion}
-          onClose={() => setFichaJugador(null)}
-          onVerEquipo={(id, nombre, logo) => {
-            setFichaJugador(null)
-            abrirEquipo(id, nombre, logo)
-          }}
-        />
-      )}
+        {tieneJugadores && (
+          <>
+            <button className="btn-comparador-completo" onClick={() => setComparadorOpen(true)}>Comparación completa →</button>
+            <div className="actions">
+              <button className="action-btn action-share" onClick={compartir} disabled={compartiendo}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z" /></svg>
+                {compartiendo ? 'Generando...' : 'Compartir'}
+              </button>
+              <button className="action-btn action-download" onClick={descargar} disabled={compartiendo}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20H19V18H5M19 9H15V3H9V9H5L12 16L19 9Z" /></svg>
+                Descargar
+              </button>
+            </div>
+          </>
+        )}
 
-      {pickerOpen && (
-        <Picker onClose={() => setPickerOpen(false)} onSelect={seleccionarJugador} />
-      )}
-    </div>
+        {comparadorOpen && <ComparadorCompleto jugadores={jugadores} competicion={competicion} temporada={temporada} onClose={() => setComparadorOpen(false)} />}
+
+        {fichaJugador && (
+          <FichaJugador
+            jugador={fichaJugador}
+            onClose={() => setFichaJugador(null)}
+            onVerEquipo={(id, nombre, logo) => { setFichaJugador(null); abrirEquipo(id, nombre, logo) }}
+            favoritos={favoritos}
+            onToggleFavorito={toggleFavorito}
+          />
+        )}
+
+        {pickerOpen && <Picker onClose={() => setPickerOpen(false)} onSelect={seleccionarJugador} />}
+
+        {modalFavoritos && (
+          <ModalFavoritos
+            favoritos={favoritos}
+            onClose={() => setModalFavoritos(false)}
+            onVerJugador={(j) => setFichaJugador(j)}
+            onEliminar={eliminarFavorito}
+          />
+        )}
+      </div>
+      <TabBar vista={vista} setVista={setVista} />
+    </>
   )
 }
 

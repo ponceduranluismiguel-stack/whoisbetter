@@ -26,6 +26,9 @@ const ligaDeEquipo = {
   116: 61, 109: 61, 114: 61,
 }
 
+const posicionOrden = { 'Goalkeeper': 0, 'Defender': 1, 'Midfielder': 2, 'Attacker': 3, 'Forward': 3 }
+const posicionES = { 'Goalkeeper': 'Porteros', 'Defender': 'Defensas', 'Midfielder': 'Centrocampistas', 'Attacker': 'Delanteros', 'Forward': 'Delanteros' }
+
 const titulosEquipo = {
   541: {
     fundacion: 1902, nombreCompleto: 'Real Madrid Club de Fútbol',
@@ -61,7 +64,7 @@ const titulosEquipo = {
       { comp: 'Supercopa de España', n: 2, logo: 556 },
       { comp: 'UEFA Europa League', n: 3, logo: 3 },
       { comp: 'UEFA Super Cup', n: 3, logo: 531 },
-      { comp: 'FIFA Intercontinental Cup', n: 1, logo: 36 },
+      { comp: 'Copa Intercontinental', n: 1, logo: 36 },
     ]
   },
   531: {
@@ -82,7 +85,7 @@ const titulosEquipo = {
       { comp: 'Supercopa de España', n: 1, logo: 556 },
       { comp: 'UEFA Cup / Europa League', n: 2, logo: 3 },
       { comp: 'UEFA Super Cup', n: 2, logo: 531 },
-      { comp: 'FIFA Intercontinental Cup', n: 1, logo: 36 },
+      { comp: 'Copa Intercontinental', n: 1, logo: 36 },
     ]
   },
   536: {
@@ -112,72 +115,18 @@ const titulosEquipo = {
       { comp: 'Copa del Rey', n: 3, logo: 143 },
     ]
   },
-  533: {
-    fundacion: 1923, nombreCompleto: 'Villarreal Club de Fútbol',
-    estadio: 'Estadio de la Cerámica', ciudad: 'Villarreal',
-    titulos: [
-      { comp: 'UEFA Europa League', n: 1, logo: 3 },
-    ]
-  },
-  727: {
-    fundacion: 1920, nombreCompleto: 'Club Atlético Osasuna',
-    estadio: 'El Sadar', ciudad: 'Pamplona',
-    titulos: []
-  },
-  538: {
-    fundacion: 1923, nombreCompleto: 'Real Club Celta de Vigo',
-    estadio: 'Abanca-Balaídos', ciudad: 'Vigo',
-    titulos: []
-  },
-  546: {
-    fundacion: 1983, nombreCompleto: 'Getafe Club de Fútbol',
-    estadio: 'Coliseum Alfonso Pérez', ciudad: 'Getafe',
-    titulos: []
-  },
-  728: {
-    fundacion: 1924, nombreCompleto: 'Rayo Vallecano de Madrid',
-    estadio: 'Estadio de Vallecas', ciudad: 'Madrid',
-    titulos: []
-  },
-  798: {
-    fundacion: 1916, nombreCompleto: 'Real Club Deportivo Mallorca',
-    estadio: 'Visit Mallorca Estadi', ciudad: 'Palma',
-    titulos: [
-      { comp: 'Copa del Rey', n: 1, logo: 143 },
-    ]
-  },
-  540: {
-    fundacion: 1900, nombreCompleto: 'Reial Club Deportiu Espanyol de Barcelona',
-    estadio: 'Stage Front Stadium', ciudad: 'Barcelona',
-    titulos: [
-      { comp: 'Copa del Rey', n: 4, logo: 143 },
-    ]
-  },
-  542: {
-    fundacion: 1921, nombreCompleto: 'Deportivo Alavés',
-    estadio: 'Mendizorrotza', ciudad: 'Vitoria-Gasteiz',
-    titulos: []
-  },
-  547: {
-    fundacion: 1930, nombreCompleto: 'Girona Fútbol Club',
-    estadio: 'Estadio Municipal de Montilivi', ciudad: 'Girona',
-    titulos: []
-  },
-  539: {
-    fundacion: 1909, nombreCompleto: 'Levante Unión Deportiva',
-    estadio: 'Estadio Ciudad de Valencia', ciudad: 'Valencia',
-    titulos: []
-  },
-  718: {
-    fundacion: 1926, nombreCompleto: 'Real Oviedo',
-    estadio: 'Carlos Tartiere', ciudad: 'Oviedo',
-    titulos: []
-  },
-  797: {
-    fundacion: 1923, nombreCompleto: 'Elche Club de Fútbol',
-    estadio: 'Estadio Manuel Martínez Valero', ciudad: 'Elche',
-    titulos: []
-  },
+  533: { fundacion: 1923, nombreCompleto: 'Villarreal Club de Fútbol', estadio: 'Estadio de la Cerámica', ciudad: 'Villarreal', titulos: [{ comp: 'UEFA Europa League', n: 1, logo: 3 }] },
+  727: { fundacion: 1920, nombreCompleto: 'Club Atlético Osasuna', estadio: 'El Sadar', ciudad: 'Pamplona', titulos: [] },
+  538: { fundacion: 1923, nombreCompleto: 'Real Club Celta de Vigo', estadio: 'Abanca-Balaídos', ciudad: 'Vigo', titulos: [] },
+  546: { fundacion: 1983, nombreCompleto: 'Getafe Club de Fútbol', estadio: 'Coliseum Alfonso Pérez', ciudad: 'Getafe', titulos: [] },
+  728: { fundacion: 1924, nombreCompleto: 'Rayo Vallecano de Madrid', estadio: 'Estadio de Vallecas', ciudad: 'Madrid', titulos: [] },
+  798: { fundacion: 1916, nombreCompleto: 'Real Club Deportivo Mallorca', estadio: 'Visit Mallorca Estadi', ciudad: 'Palma', titulos: [{ comp: 'Copa del Rey', n: 1, logo: 143 }] },
+  540: { fundacion: 1900, nombreCompleto: 'RCD Espanyol de Barcelona', estadio: 'Stage Front Stadium', ciudad: 'Barcelona', titulos: [{ comp: 'Copa del Rey', n: 4, logo: 143 }] },
+  542: { fundacion: 1921, nombreCompleto: 'Deportivo Alavés', estadio: 'Mendizorrotza', ciudad: 'Vitoria-Gasteiz', titulos: [] },
+  547: { fundacion: 1930, nombreCompleto: 'Girona Fútbol Club', estadio: 'Estadio Municipal de Montilivi', ciudad: 'Girona', titulos: [] },
+  539: { fundacion: 1909, nombreCompleto: 'Levante Unión Deportiva', estadio: 'Estadio Ciudad de Valencia', ciudad: 'Valencia', titulos: [] },
+  718: { fundacion: 1926, nombreCompleto: 'Real Oviedo', estadio: 'Carlos Tartiere', ciudad: 'Oviedo', titulos: [] },
+  797: { fundacion: 1923, nombreCompleto: 'Elche Club de Fútbol', estadio: 'Estadio Manuel Martínez Valero', ciudad: 'Elche', titulos: [] },
 }
 
 export default function FichaEquipo({ equipoId, equipoNombre, equipoLogo, onBack, onJugador }) {
@@ -193,11 +142,20 @@ export default function FichaEquipo({ equipoId, equipoNombre, equipoLogo, onBack
     setDatos(null)
 
     async function cargar() {
-      const [infoRes, clasificacionRes] = await Promise.all([
+      // Cargamos squad para dorsales + info + clasificación en paralelo
+      const [infoRes, clasificacionRes, squadRes] = await Promise.all([
         fetchJson(`${API_URL}/teams?id=${equipoId}`),
         fetchJson(`${API_URL}/standings?league=${ligaId}&season=${SEASON}`),
+        fetchJson(`${API_URL}/players/squads?team=${equipoId}`),
       ])
       await delay(150)
+
+      // Mapa id → dorsal desde el squad oficial
+      const dorsalMap = {}
+      const squadJugadores = squadRes?.response?.[0]?.players || []
+      squadJugadores.forEach(j => {
+        if (j.id && j.number) dorsalMap[j.id] = j.number
+      })
 
       const ligasParaJugadores = [ligaId, 2, 3, 143, 556, 531, 848]
       let jugadoresMap = {}
@@ -214,8 +172,11 @@ export default function FichaEquipo({ equipoId, equipoNombre, equipoLogo, onBack
             const id = j.player.id
             if (!jugadoresMap[id]) {
               jugadoresMap[id] = {
-                id, nombre: j.player.name, foto: j.player.photo,
+                id,
+                nombre: j.player.name,
+                foto: j.player.photo,
                 posicion: st.games?.position || '',
+                dorsal: dorsalMap[id] || null,
                 goles: 0, asistencias: 0, partidos: 0,
               }
             }
@@ -234,14 +195,31 @@ export default function FichaEquipo({ equipoId, equipoNombre, equipoLogo, onBack
       const topAsistencias = [...jugadoresConStats].sort((a, b) => b.asistencias - a.asistencias).slice(0, 25)
       const topPartidos = [...jugadoresConStats].sort((a, b) => b.partidos - a.partidos).slice(0, 25)
 
+      // Plantilla agrupada por posición
+      const gruposPosicion = {}
+      jugadoresConStats.forEach(j => {
+        const pos = j.posicion || 'Unknown'
+        if (!gruposPosicion[pos]) gruposPosicion[pos] = []
+        gruposPosicion[pos].push(j)
+      })
+      Object.keys(gruposPosicion).forEach(pos => {
+        gruposPosicion[pos].sort((a, b) => {
+          if (a.dorsal && b.dorsal) return a.dorsal - b.dorsal
+          if (a.dorsal) return -1
+          if (b.dorsal) return 1
+          return a.nombre.localeCompare(b.nombre)
+        })
+      })
+      const plantillaOrdenada = Object.entries(gruposPosicion)
+        .sort((a, b) => (posicionOrden[a[0]] ?? 99) - (posicionOrden[b[0]] ?? 99))
+
       const info = infoRes?.response?.[0]
       const standing = clasificacionRes?.response?.[0]?.league?.standings?.[0] || []
       const posicionEquipo = standing.findIndex(s => s.team.id === equipoId) + 1
-
       const statsEquipoRes = await fetchJson(`${API_URL}/teams/statistics?team=${equipoId}&season=${SEASON}&league=${ligaId}`)
       const statsEquipo = statsEquipoRes?.response
 
-      setDatos({ info, standing, posicionEquipo, topGoles, topAsistencias, topPartidos, statsEquipo })
+      setDatos({ info, standing, posicionEquipo, topGoles, topAsistencias, topPartidos, plantillaOrdenada, statsEquipo })
       setCargando(false)
     }
 
@@ -252,25 +230,19 @@ export default function FichaEquipo({ equipoId, equipoNombre, equipoLogo, onBack
     <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.6rem', color: '#0a1740', background: '#ffd400', padding: '4px 10px', borderRadius: '5px', letterSpacing: '1.5px', textTransform: 'uppercase', marginBottom: '10px', display: 'inline-block' }}>{texto}</div>
   )
 
-  const { info, standing, posicionEquipo, topGoles, topAsistencias, topPartidos, statsEquipo } = datos || {}
-  const topActivo = tabActiva === 'goles' ? topGoles : tabActiva === 'asistencias' ? topAsistencias : topPartidos
+  const { info, standing, posicionEquipo, topGoles, topAsistencias, topPartidos, plantillaOrdenada, statsEquipo } = datos || {}
+  const topActivo = tabActiva === 'goles' ? topGoles : tabActiva === 'asistencias' ? topAsistencias : tabActiva === 'partidos' ? topPartidos : null
   const labelActivo = tabActiva === 'goles' ? 'G' : tabActiva === 'asistencias' ? 'A' : 'PJ'
 
   return (
-    <div style={{
-      minHeight: '100vh', background: 'linear-gradient(180deg, #0a1740 0%, #02081f 100%)',
-      overflowY: 'auto', WebkitOverflowScrolling: 'touch',
-    }}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #0a1740 0%, #02081f 100%)', paddingBottom: '80px' }}>
       <div style={{
         padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '12px',
         background: 'linear-gradient(180deg, rgba(255,212,0,0.08), transparent)',
         borderBottom: '1px solid rgba(255,255,255,0.06)', position: 'sticky', top: 0, zIndex: 10,
         backdropFilter: 'blur(10px)',
       }}>
-        <button onClick={onBack} style={{
-          width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)',
-          border: 'none', color: '#fff', cursor: 'pointer', fontSize: '1.1rem', flexShrink: 0,
-        }}>←</button>
+        <button onClick={onBack} style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '1.1rem', flexShrink: 0 }}>←</button>
         <div style={{ width: '36px', height: '36px', background: 'rgba(255,255,255,0.95)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
           <img src={`${API_URL}/img/${equipoLogo.replace('https://media.api-sports.io/', '')}`} alt={equipoNombre}
             style={{ width: '28px', height: '28px', objectFit: 'contain' }}
@@ -283,9 +255,7 @@ export default function FichaEquipo({ equipoId, equipoNombre, equipoLogo, onBack
       </div>
 
       {cargando ? (
-        <div style={{ padding: '60px', textAlign: 'center', color: '#ffd400', fontFamily: 'Anton, sans-serif', fontSize: '1rem', letterSpacing: '1px' }}>
-          CARGANDO DATOS...
-        </div>
+        <div style={{ padding: '60px', textAlign: 'center', color: '#ffd400', fontFamily: 'Anton, sans-serif', fontSize: '1rem', letterSpacing: '1px' }}>CARGANDO DATOS...</div>
       ) : (
         <div style={{ padding: '16px' }}>
 
@@ -361,7 +331,7 @@ export default function FichaEquipo({ equipoId, equipoNombre, equipoLogo, onBack
           {standing.length > 0 && (
             <div style={{ marginBottom: '20px' }}>
               {seccionTitulo('Clasificación')}
-              <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '12px', overflow: 'hidden', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05)' }}>
+              <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '12px', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05)' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '28px 1fr 28px 28px 28px 28px 40px', gap: '4px', padding: '6px 10px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                   {['#', 'Equipo', 'PJ', 'V', 'E', 'D', 'Pts'].map((h, i) => (
                     <div key={i} style={{ fontSize: '0.45rem', fontWeight: 700, color: '#7a8aa8', letterSpacing: '1px', textTransform: 'uppercase', textAlign: i > 1 ? 'center' : 'left' }}>{h}</div>
@@ -370,17 +340,13 @@ export default function FichaEquipo({ equipoId, equipoNombre, equipoLogo, onBack
                 {standing.slice(0, 20).map((s, i) => {
                   const esActual = s.team.id === equipoId
                   return (
-                    <div key={i} style={{
-                      display: 'grid', gridTemplateColumns: '28px 1fr 28px 28px 28px 28px 40px', gap: '4px',
-                      padding: '7px 10px', borderBottom: i < standing.length - 1 ? '1px solid rgba(255,255,255,0.03)' : 'none',
-                      background: esActual ? 'rgba(255,212,0,0.08)' : 'transparent',
-                    }}>
+                    <div key={i} style={{ display: 'grid', gridTemplateColumns: '28px 1fr 28px 28px 28px 28px 40px', gap: '4px', padding: '7px 10px', borderBottom: i < standing.length - 1 ? '1px solid rgba(255,255,255,0.03)' : 'none', background: esActual ? 'rgba(255,212,0,0.08)' : 'transparent' }}>
                       <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.8rem', color: esActual ? '#ffd400' : '#7a8aa8' }}>{s.rank}</div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <img src={`${API_URL}/img/${s.team.logo.replace('https://media.api-sports.io/', '')}`} alt={s.team.name}
                           style={{ width: '16px', height: '16px', objectFit: 'contain' }}
                           onError={e => { e.target.style.display = 'none' }} />
-                        <div style={{ fontSize: '0.75rem', color: esActual ? '#ffd400' : '#fff', fontWeight: esActual ? 700 : 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: esActual ? 'Anton, sans-serif' : 'inherit' }}>{s.team.name}</div>
+                        <div style={{ fontSize: '0.75rem', color: esActual ? '#ffd400' : '#fff', fontFamily: esActual ? 'Anton, sans-serif' : 'inherit', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.team.name}</div>
                       </div>
                       {[s.all?.played, s.all?.win, s.all?.draw, s.all?.lose, s.points].map((v, j) => (
                         <div key={j} style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.8rem', color: esActual ? '#ffd400' : '#a8b4cc', textAlign: 'center' }}>{v}</div>
@@ -393,44 +359,101 @@ export default function FichaEquipo({ equipoId, equipoNombre, equipoLogo, onBack
           )}
 
           <div style={{ marginBottom: '20px' }}>
-            {seccionTitulo('Top jugadores 25/26 — Todas las competiciones')}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+            {seccionTitulo('Jugadores 25/26 — Todas las competiciones')}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', overflowX: 'auto', paddingBottom: '4px' }}>
               {[
-                { key: 'goles', label: 'Goles' },
-                { key: 'asistencias', label: 'Asist.' },
-                { key: 'partidos', label: 'Partidos' },
+                { key: 'goles', label: '⚽ Goles' },
+                { key: 'asistencias', label: '🎯 Asist.' },
+                { key: 'partidos', label: '📅 Partidos' },
+                { key: 'plantilla', label: '👥 Plantilla' },
               ].map(tab => (
                 <button key={tab.key} onClick={() => setTabActiva(tab.key)} style={{
-                  fontFamily: 'Anton, sans-serif', fontSize: '0.65rem', letterSpacing: '1px',
-                  padding: '6px 12px', borderRadius: '20px', border: 'none', cursor: 'pointer',
+                  fontFamily: 'Anton, sans-serif', fontSize: '0.6rem', letterSpacing: '1px',
+                  padding: '6px 12px', borderRadius: '20px', border: 'none', cursor: 'pointer', flexShrink: 0,
                   background: tabActiva === tab.key ? '#ffd400' : 'rgba(255,255,255,0.08)',
                   color: tabActiva === tab.key ? '#0a1740' : '#fff',
                   textTransform: 'uppercase',
                 }}>{tab.label}</button>
               ))}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {(topActivo || []).map((j, i) => (
-                <div key={i}
-                  onClick={() => onJugador({ apiId: j.id, nombre: j.nombre, nombreMostrado: j.nombre, equipo: equipoNombre, dorsal: '?' })}
-                  style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05)', cursor: 'pointer' }}>
-                  <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.8rem', color: i < 3 ? '#ffd400' : '#7a8aa8', width: '20px', textAlign: 'center', flexShrink: 0 }}>{i + 1}</div>
-                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', background: 'linear-gradient(135deg, #1a2750, #0a1428)', flexShrink: 0 }}>
-                    <img src={`${API_URL}/img/${j.foto?.replace('https://media.api-sports.io/', '')}`} alt={j.nombre}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
-                      onError={e => { e.target.style.display = 'none' }} />
+
+            {tabActiva !== 'plantilla' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {(topActivo || []).map((j, i) => (
+                  <div key={i}
+                    onClick={() => onJugador({ apiId: j.id, nombre: j.nombre, nombreMostrado: j.nombre, equipo: equipoNombre, dorsal: j.dorsal || '?' })}
+                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05)', cursor: 'pointer' }}>
+                    <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.8rem', color: i < 3 ? '#ffd400' : '#7a8aa8', width: '20px', textAlign: 'center', flexShrink: 0 }}>{i + 1}</div>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', background: 'linear-gradient(135deg, #1a2750, #0a1428)', flexShrink: 0 }}>
+                      <img src={`${API_URL}/img/${j.foto?.replace('https://media.api-sports.io/', '')}`} alt={j.nombre}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
+                        onError={e => { e.target.style.display = 'none' }} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.85rem', color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.2px' }}>{j.nombre}</div>
+                      <div style={{ fontSize: '0.5rem', color: '#7a8aa8', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginTop: '1px' }}>{j.posicion}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '1.2rem', color: '#ffd400' }}>
+                        {tabActiva === 'goles' ? j.goles : tabActiva === 'asistencias' ? j.asistencias : j.partidos}
+                      </div>
+                      <div style={{ fontSize: '0.45rem', fontWeight: 700, color: '#7a8aa8', letterSpacing: '1px', textTransform: 'uppercase' }}>{labelActivo}</div>
+                    </div>
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.85rem', color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.2px' }}>{j.nombre}</div>
-                    <div style={{ fontSize: '0.5rem', color: '#7a8aa8', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', marginTop: '1px' }}>{j.posicion}</div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {(plantillaOrdenada || []).map(([posicion, jugadores]) => (
+                  <div key={posicion}>
+                    <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.55rem', color: '#7a8aa8', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px', borderLeft: '3px solid #ffd400', paddingLeft: '8px' }}>
+                      {posicionES[posicion] || posicion} — {jugadores.length}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                      {jugadores.map((j, i) => (
+                        <div key={i}
+                          onClick={() => onJugador({ apiId: j.id, nombre: j.nombre, nombreMostrado: j.nombre, equipo: equipoNombre, dorsal: j.dorsal || '?' })}
+                          style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05)', cursor: 'pointer' }}>
+                          <div style={{
+                            fontFamily: 'Anton, sans-serif', fontSize: '0.9rem',
+                            color: j.dorsal ? '#ffd400' : 'rgba(255,255,255,0.2)',
+                            width: '24px', textAlign: 'center', flexShrink: 0
+                          }}>
+                            {j.dorsal || '—'}
+                          </div>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', overflow: 'hidden', background: 'linear-gradient(135deg, #1a2750, #0a1428)', flexShrink: 0 }}>
+                            <img src={`${API_URL}/img/${j.foto?.replace('https://media.api-sports.io/', '')}`} alt={j.nombre}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
+                              onError={e => { e.target.style.display = 'none' }} />
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.85rem', color: '#fff', textTransform: 'uppercase', letterSpacing: '-0.2px' }}>{j.nombre}</div>
+                          </div>
+                          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                            {j.goles > 0 && (
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.9rem', color: '#ffd400' }}>{j.goles}</div>
+                                <div style={{ fontSize: '0.4rem', color: '#7a8aa8', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase' }}>G</div>
+                              </div>
+                            )}
+                            {j.asistencias > 0 && (
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.9rem', color: '#a8b4cc' }}>{j.asistencias}</div>
+                                <div style={{ fontSize: '0.4rem', color: '#7a8aa8', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase' }}>A</div>
+                              </div>
+                            )}
+                            <div style={{ textAlign: 'center' }}>
+                              <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '0.9rem', color: '#7a8aa8' }}>{j.partidos}</div>
+                              <div style={{ fontSize: '0.4rem', color: '#7a8aa8', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase' }}>PJ</div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div style={{ fontFamily: 'Anton, sans-serif', fontSize: '1.2rem', color: '#ffd400', minWidth: '28px', textAlign: 'right' }}>
-                    {tabActiva === 'goles' ? j.goles : tabActiva === 'asistencias' ? j.asistencias : j.partidos}
-                  </div>
-                  <div style={{ fontSize: '0.45rem', fontWeight: 700, color: '#7a8aa8', letterSpacing: '1px', textTransform: 'uppercase' }}>{labelActivo}</div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
         </div>
