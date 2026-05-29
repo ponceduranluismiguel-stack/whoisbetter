@@ -10,6 +10,11 @@ const ligasConfig = [
   { nombre: 'Serie A', id: 135, logoId: 135 },
   { nombre: 'Bundesliga', id: 78, logoId: 78 },
   { nombre: 'Ligue 1', id: 61, logoId: 61 },
+  { nombre: 'Liga Portuguesa', id: 94, logoId: 94 },
+  { nombre: 'Eredivisie', id: 88, logoId: 88 },
+  { nombre: 'Liga Argentina', id: 128, logoId: 128 },
+  { nombre: 'Brasileirão', id: 71, logoId: 71 },
+  { nombre: 'MLS', id: 253, logoId: 253 },
 ]
 
 function fotoProxy(url) {
